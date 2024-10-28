@@ -1,4 +1,3 @@
-import logging
 import uuid
 
 import fastapi
@@ -7,7 +6,6 @@ from fastapi_mongo_base.routes import AbstractBaseRouter
 from metisai.async_metis import AsyncMetisBot
 from server.config import Settings
 from usso.fastapi import jwt_access_security
-from utils.ai import MidjourneyDetails
 
 from .models import Imagination
 from .schemas import (

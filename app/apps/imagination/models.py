@@ -8,6 +8,9 @@ from .schemas import ImagineSchema
 
 
 class Imagination(ImagineSchema, OwnedEntity):
+    class Settings:
+        indexes = OwnedEntity.Settings.indexes
+
     @property
     def item_url(self):
         # TODO: Change to use the business url

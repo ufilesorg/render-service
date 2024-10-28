@@ -3,10 +3,10 @@ from singleton import Singleton
 
 class ImaginationWorker(metaclass=Singleton):
     def __init__(self) -> None:
-        self.task_ids = []
+        self.tasks = []
 
     def add_task(self, task):
-        self.task_ids.append(task)
+        self.tasks.append(task)
 
 
 async def update_imagination():

@@ -12,13 +12,13 @@ from apps.imagination.schemas import (
     ImagineResponse,
     ImagineWebhookData,
 )
+from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
 from metisai.async_metis import AsyncMetisBot
 from PIL import Image
 from server.config import Settings
 from usso.async_session import AsyncUssoSession
 from utils import aionetwork, imagetools, ufiles
 from utils.ai import Midjourney
-from utils.basic import delay_execution, try_except_wrapper
 
 
 def sanitize_filename(prompt: str):
@@ -97,20 +97,20 @@ async def upload_images(
                 for i, image in enumerate(images[1:])
             ]
         )
-        uploaded_items = await asyncio.gather(
-            *[
-                upload_image(
-                    client,
-                    image,
-                    image_name=f"{image_name}_{i+1}",
-                    user_id=user_id,
-                    prompt=prompt,
-                    engine=engine,
-                    file_upload_dir=file_upload_dir,
-                )
-                for i, image in enumerate(images)
-            ]
-        )
+        # uploaded_items = await asyncio.gather(
+        #     *[
+        #         upload_image(
+        #             client,
+        #             image,
+        #             image_name=f"{image_name}_{i+1}",
+        #             user_id=user_id,
+        #             prompt=prompt,
+        #             engine=engine,
+        #             file_upload_dir=file_upload_dir,
+        #         )
+        #         for i, image in enumerate(images)
+        #     ]
+        # )
     return uploaded_items
 
 

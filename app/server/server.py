@@ -108,12 +108,8 @@ app.add_middleware(
 
 app.add_middleware(middlewares.OriginalHostMiddleware)
 
-from apps.business.routes import router as business_router
 from apps.imagination.routes import router as imagination_router
 
-app.include_router(
-    business_router, prefix=f"{config.Settings.base_path}", include_in_schema=False
-)
 app.include_router(imagination_router, prefix=f"{config.Settings.base_path}")
 
 
