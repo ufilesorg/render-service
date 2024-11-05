@@ -1,0 +1,1310 @@
+[
+    {
+        "topic": "Reference Image",
+        "detail": {
+            "value": "reference image",
+            "label": {
+                "en": "Reference Image",
+                "fa": "تصویر مرجع"
+            },
+            "description": null,
+            "children": null,
+            "image": null
+        },
+        "options": [],
+        "ai_attr": null,
+        "limited": false,
+        "type": "image"
+    },
+    {
+        "topic": "background",
+        "detail": {
+            "value": "background",
+            "label": {
+                "en": "Background",
+                "fa": "پس زمینه"
+            },
+            "description": {
+                "en": "Choose a background for your design.",
+                "fa": "یک پس زمینه برای طرح خود انتخاب کنید."
+            },
+            "children": null,
+            "image": null
+        },
+        "options": [
+            {
+                "value": "default",
+                "label": {
+                    "en": "Default",
+                    "fa": "پیش فرض"
+                },
+                "description": {
+                    "en": "Use the default background.",
+                    "fa": "استفاده از پس زمینه پیش فرض."
+                },
+                "children": null,
+                "image": null
+            },
+            {
+                "value": "automotive",
+                "label": {
+                    "en": "Automotive",
+                    "fa": "خودرو و موتورسیکلت"
+                },
+                "description": {
+                    "en": "Use an automotive background.",
+                    "fa": "استفاده از پس زمینه خودرو."
+                },
+                "children": null,
+                "image": null
+            },
+            {
+                "value": "office",
+                "label": {
+                    "en": "Office",
+                    "fa": "محیط اداری"
+                },
+                "description": {
+                    "en": "Use an office background.",
+                    "fa": "استفاده از پس زمینه محیط اداری."
+                },
+                "children": null,
+                "image": null
+            },
+            {
+                "value": "fashion",
+                "label": {
+                    "en": "Fashion",
+                    "fa": "پوشاک و فشن"
+                },
+                "description": {
+                    "en": "Use a fashion background.",
+                    "fa": "استفاده از پس زمینه فشن."
+                },
+                "children": null,
+                "image": null
+            },
+            {
+                "value": "food",
+                "label": {
+                    "en": "Food",
+                    "fa": "غذا، رستوران، کافی‌شاپ"
+                },
+                "description": {
+                    "en": "Use a food background.",
+                    "fa": "استفاده از پس زمینه غذا."
+                },
+                "children": null,
+                "image": null
+            },
+            {
+                "value": "home",
+                "label": {
+                    "en": "Home",
+                    "fa": "محیط خانه"
+                },
+                "description": {
+                    "en": "Use a home background.",
+                    "fa": "استفاده از پس زمینه محیط خانه."
+                },
+                "children": null,
+                "image": null
+            },
+            {
+                "value": "packaging",
+                "label": {
+                    "en": "Packaging",
+                    "fa": "بسته‌بندی کالا"
+                },
+                "description": {
+                    "en": "Use a packaging background.",
+                    "fa": "استفاده از پس زمینه بسته‌بندی."
+                },
+                "children": null,
+                "image": null
+            },
+            {
+                "value": "luxury",
+                "label": {
+                    "en": "Luxury",
+                    "fa": "کالا و محیط لوکس"
+                },
+                "description": {
+                    "en": "Use a luxury background.",
+                    "fa": "استفاده از پس زمینه لوکس."
+                },
+                "children": null,
+                "image": null
+            }
+        ],
+        "ai_attr": [
+            {
+                "value": "translate",
+                "label": {
+                    "en": "Translate",
+                    "fa": "ترجمه"
+                },
+                "description": {
+                    "en": "Translate the text to another language.",
+                    "fa": "متن را به زبان دیگری ترجمه کنید."
+                },
+                "children": [
+                    {
+                        "value": "persian",
+                        "label": {
+                            "en": "Persian",
+                            "fa": "فارسی"
+                        },
+                        "description": {
+                            "en": "Translate the text to Persian.",
+                            "fa": "متن را به فارسی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "english",
+                        "label": {
+                            "en": "English",
+                            "fa": "انگلیسی"
+                        },
+                        "description": {
+                            "en": "Translate the text to English.",
+                            "fa": "متن را به انگلیسی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "arabic",
+                        "label": {
+                            "en": "Arabic",
+                            "fa": "عربی"
+                        },
+                        "description": {
+                            "en": "Translate the text to Arabic.",
+                            "fa": "متن را به عربی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    }
+                ],
+                "image": null
+            },
+            {
+                "value": "tone",
+                "label": {
+                    "en": "Change Tone",
+                    "fa": "تغییر لحن"
+                },
+                "description": {
+                    "en": "Change the tone of the text.",
+                    "fa": "لحن متن را تغییر دهید."
+                },
+                "children": [
+                    {
+                        "value": "professional",
+                        "label": {
+                            "en": "professional",
+                            "fa": "حرفه‌ای"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to professional.",
+                            "fa": "لحن متن را به حرفه‌ای تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "informal",
+                        "label": {
+                            "en": "Informal",
+                            "fa": "غیر رسمی"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to informal.",
+                            "fa": "لحن متن را به غیر رسمی تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "friendly",
+                        "label": {
+                            "en": "Friendly",
+                            "fa": "دوستانه"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to friendly.",
+                            "fa": "لحن متن را به دوستانه تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    }
+                ],
+                "image": null
+            },
+            {
+                "value": "rewrite",
+                "label": {
+                    "en": "Rewrite",
+                    "fa": "بازنویسی"
+                },
+                "description": {
+                    "en": "Rewrite the text.",
+                    "fa": "متن را بازنویسی کنید."
+                },
+                "children": null,
+                "image": null
+            },
+            {
+                "value": "shorten",
+                "label": {
+                    "en": "Shorten",
+                    "fa": "کوتاه کردن"
+                },
+                "description": {
+                    "en": "Shorten the text.",
+                    "fa": "متن را کوتاه کنید."
+                },
+                "children": null,
+                "image": null
+            }
+        ],
+        "limited": false,
+        "type": "text"
+    },
+    {
+        "topic": "surroundings",
+        "detail": {
+            "value": "surroundings",
+            "label": {
+                "en": "Surroundings",
+                "fa": "محیط"
+            },
+            "description": {
+                "en": "Choose a surrounding for your design.",
+                "fa": "یک محیط برای طرح خود انتخاب کنید."
+            },
+            "children": null,
+            "image": null
+        },
+        "options": [],
+        "ai_attr": [
+            {
+                "value": "translate",
+                "label": {
+                    "en": "Translate",
+                    "fa": "ترجمه"
+                },
+                "description": {
+                    "en": "Translate the text to another language.",
+                    "fa": "متن را به زبان دیگری ترجمه کنید."
+                },
+                "children": [
+                    {
+                        "value": "persian",
+                        "label": {
+                            "en": "Persian",
+                            "fa": "فارسی"
+                        },
+                        "description": {
+                            "en": "Translate the text to Persian.",
+                            "fa": "متن را به فارسی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "english",
+                        "label": {
+                            "en": "English",
+                            "fa": "انگلیسی"
+                        },
+                        "description": {
+                            "en": "Translate the text to English.",
+                            "fa": "متن را به انگلیسی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "arabic",
+                        "label": {
+                            "en": "Arabic",
+                            "fa": "عربی"
+                        },
+                        "description": {
+                            "en": "Translate the text to Arabic.",
+                            "fa": "متن را به عربی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    }
+                ],
+                "image": null
+            },
+            {
+                "value": "tone",
+                "label": {
+                    "en": "Change Tone",
+                    "fa": "تغییر لحن"
+                },
+                "description": {
+                    "en": "Change the tone of the text.",
+                    "fa": "لحن متن را تغییر دهید."
+                },
+                "children": [
+                    {
+                        "value": "professional",
+                        "label": {
+                            "en": "professional",
+                            "fa": "حرفه‌ای"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to professional.",
+                            "fa": "لحن متن را به حرفه‌ای تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "informal",
+                        "label": {
+                            "en": "Informal",
+                            "fa": "غیر رسمی"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to informal.",
+                            "fa": "لحن متن را به غیر رسمی تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "friendly",
+                        "label": {
+                            "en": "Friendly",
+                            "fa": "دوستانه"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to friendly.",
+                            "fa": "لحن متن را به دوستانه تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    }
+                ],
+                "image": null
+            },
+            {
+                "value": "rewrite",
+                "label": {
+                    "en": "Rewrite",
+                    "fa": "بازنویسی"
+                },
+                "description": {
+                    "en": "Rewrite the text.",
+                    "fa": "متن را بازنویسی کنید."
+                },
+                "children": null,
+                "image": null
+            },
+            {
+                "value": "shorten",
+                "label": {
+                    "en": "Shorten",
+                    "fa": "کوتاه کردن"
+                },
+                "description": {
+                    "en": "Shorten the text.",
+                    "fa": "متن را کوتاه کنید."
+                },
+                "children": null,
+                "image": null
+            }
+        ],
+        "limited": false,
+        "type": "text"
+    },
+    {
+        "topic": "placement",
+        "detail": {
+            "value": "placement",
+            "label": {
+                "en": "Placement",
+                "fa": "جایگاه"
+            },
+            "description": {
+                "en": "Choose a placement for your design.",
+                "fa": "یک جایگاه برای طرح خود انتخاب کنید."
+            },
+            "children": null,
+            "image": null
+        },
+        "options": [],
+        "ai_attr": [
+            {
+                "value": "translate",
+                "label": {
+                    "en": "Translate",
+                    "fa": "ترجمه"
+                },
+                "description": {
+                    "en": "Translate the text to another language.",
+                    "fa": "متن را به زبان دیگری ترجمه کنید."
+                },
+                "children": [
+                    {
+                        "value": "persian",
+                        "label": {
+                            "en": "Persian",
+                            "fa": "فارسی"
+                        },
+                        "description": {
+                            "en": "Translate the text to Persian.",
+                            "fa": "متن را به فارسی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "english",
+                        "label": {
+                            "en": "English",
+                            "fa": "انگلیسی"
+                        },
+                        "description": {
+                            "en": "Translate the text to English.",
+                            "fa": "متن را به انگلیسی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "arabic",
+                        "label": {
+                            "en": "Arabic",
+                            "fa": "عربی"
+                        },
+                        "description": {
+                            "en": "Translate the text to Arabic.",
+                            "fa": "متن را به عربی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    }
+                ],
+                "image": null
+            },
+            {
+                "value": "tone",
+                "label": {
+                    "en": "Change Tone",
+                    "fa": "تغییر لحن"
+                },
+                "description": {
+                    "en": "Change the tone of the text.",
+                    "fa": "لحن متن را تغییر دهید."
+                },
+                "children": [
+                    {
+                        "value": "professional",
+                        "label": {
+                            "en": "professional",
+                            "fa": "حرفه‌ای"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to professional.",
+                            "fa": "لحن متن را به حرفه‌ای تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "informal",
+                        "label": {
+                            "en": "Informal",
+                            "fa": "غیر رسمی"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to informal.",
+                            "fa": "لحن متن را به غیر رسمی تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "friendly",
+                        "label": {
+                            "en": "Friendly",
+                            "fa": "دوستانه"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to friendly.",
+                            "fa": "لحن متن را به دوستانه تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    }
+                ],
+                "image": null
+            },
+            {
+                "value": "rewrite",
+                "label": {
+                    "en": "Rewrite",
+                    "fa": "بازنویسی"
+                },
+                "description": {
+                    "en": "Rewrite the text.",
+                    "fa": "متن را بازنویسی کنید."
+                },
+                "children": null,
+                "image": null
+            },
+            {
+                "value": "shorten",
+                "label": {
+                    "en": "Shorten",
+                    "fa": "کوتاه کردن"
+                },
+                "description": {
+                    "en": "Shorten the text.",
+                    "fa": "متن را کوتاه کنید."
+                },
+                "children": null,
+                "image": null
+            }
+        ],
+        "limited": false,
+        "type": "text"
+    },
+    {
+        "topic": "custom",
+        "detail": {
+            "value": "custom",
+            "label": {
+                "en": "Custom",
+                "fa": "سفارشی"
+            },
+            "description": {
+                "en": "Choose a custom design for your project.",
+                "fa": "یک طرح سفارشی برای پروژه خود انتخاب کنید."
+            },
+            "children": null,
+            "image": null
+        },
+        "options": [],
+        "ai_attr": [
+            {
+                "value": "translate",
+                "label": {
+                    "en": "Translate",
+                    "fa": "ترجمه"
+                },
+                "description": {
+                    "en": "Translate the text to another language.",
+                    "fa": "متن را به زبان دیگری ترجمه کنید."
+                },
+                "children": [
+                    {
+                        "value": "persian",
+                        "label": {
+                            "en": "Persian",
+                            "fa": "فارسی"
+                        },
+                        "description": {
+                            "en": "Translate the text to Persian.",
+                            "fa": "متن را به فارسی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "english",
+                        "label": {
+                            "en": "English",
+                            "fa": "انگلیسی"
+                        },
+                        "description": {
+                            "en": "Translate the text to English.",
+                            "fa": "متن را به انگلیسی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "arabic",
+                        "label": {
+                            "en": "Arabic",
+                            "fa": "عربی"
+                        },
+                        "description": {
+                            "en": "Translate the text to Arabic.",
+                            "fa": "متن را به عربی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    }
+                ],
+                "image": null
+            },
+            {
+                "value": "tone",
+                "label": {
+                    "en": "Change Tone",
+                    "fa": "تغییر لحن"
+                },
+                "description": {
+                    "en": "Change the tone of the text.",
+                    "fa": "لحن متن را تغییر دهید."
+                },
+                "children": [
+                    {
+                        "value": "professional",
+                        "label": {
+                            "en": "professional",
+                            "fa": "حرفه‌ای"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to professional.",
+                            "fa": "لحن متن را به حرفه‌ای تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "informal",
+                        "label": {
+                            "en": "Informal",
+                            "fa": "غیر رسمی"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to informal.",
+                            "fa": "لحن متن را به غیر رسمی تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "friendly",
+                        "label": {
+                            "en": "Friendly",
+                            "fa": "دوستانه"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to friendly.",
+                            "fa": "لحن متن را به دوستانه تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    }
+                ],
+                "image": null
+            },
+            {
+                "value": "rewrite",
+                "label": {
+                    "en": "Rewrite",
+                    "fa": "بازنویسی"
+                },
+                "description": {
+                    "en": "Rewrite the text.",
+                    "fa": "متن را بازنویسی کنید."
+                },
+                "children": null,
+                "image": null
+            },
+            {
+                "value": "shorten",
+                "label": {
+                    "en": "Shorten",
+                    "fa": "کوتاه کردن"
+                },
+                "description": {
+                    "en": "Shorten the text.",
+                    "fa": "متن را کوتاه کنید."
+                },
+                "children": null,
+                "image": null
+            }
+        ],
+        "limited": false,
+        "type": "text"
+    },
+    {
+        "topic": "aspect_ratio",
+        "detail": {
+            "value": "aspect_ratio",
+            "label": {
+                "en": "Aspect Ratio",
+                "fa": "نسبت ابعاد"
+            },
+            "description": {
+                "en": "Choose an aspect ratio for your design.",
+                "fa": "نسبت ابعاد طرح خود را انتخاب کنید."
+            },
+            "children": null,
+            "image": null
+        },
+        "options": [
+            {
+                "value": "1:1",
+                "label": {
+                    "en": "1:1",
+                    "fa": "1:1"
+                },
+                "description": {
+                    "en": "Instagram post",
+                    "fa": "پست اینستاگرام"
+                },
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "16:9",
+                "label": {
+                    "en": "16:9",
+                    "fa": "16:9"
+                },
+                "description": {
+                    "en": "YouTube video",
+                    "fa": "ویدیو یوتیوب"
+                },
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "9:16",
+                "label": {
+                    "en": "9:16",
+                    "fa": "9:16"
+                },
+                "description": {
+                    "en": "Instagram story",
+                    "fa": "استوری اینستاگرام"
+                },
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "3:2",
+                "label": {
+                    "en": "3:2",
+                    "fa": "3:2"
+                },
+                "description": {
+                    "en": "Twitter post",
+                    "fa": "پست توییتر"
+                },
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "2:3",
+                "label": {
+                    "en": "2:3",
+                    "fa": "2:3"
+                },
+                "description": {
+                    "en": "Facebook post",
+                    "fa": "پست فیسبوک"
+                },
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "4:3",
+                "label": {
+                    "en": "4:3",
+                    "fa": "4:3"
+                },
+                "description": {
+                    "en": "PowerPoint slide",
+                    "fa": "اسلاید پاورپوینت"
+                },
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "3:4",
+                "label": {
+                    "en": "3:4",
+                    "fa": "3:4"
+                },
+                "description": {
+                    "en": "Instagram portrait",
+                    "fa": "پرتره اینستاگرام"
+                },
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "2:1",
+                "label": {
+                    "en": "2:1",
+                    "fa": "2:1"
+                },
+                "description": {
+                    "en": "Facebook cover",
+                    "fa": "کاور فیسبوک"
+                },
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "1:2",
+                "label": {
+                    "en": "1:2",
+                    "fa": "1:2"
+                },
+                "description": {
+                    "en": "Pinterest pin",
+                    "fa": "پینترست پین"
+                },
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "3:1",
+                "label": {
+                    "en": "3:1",
+                    "fa": "3:1"
+                },
+                "description": {
+                    "en": "Twitter header",
+                    "fa": "هدر توییتر"
+                },
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "1:3",
+                "label": {
+                    "en": "1:3",
+                    "fa": "1:3"
+                },
+                "description": {
+                    "en": "Pinterest board",
+                    "fa": "پینترست بورد"
+                },
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "4:1",
+                "label": {
+                    "en": "4:1",
+                    "fa": "4:1"
+                },
+                "description": {
+                    "en": "LinkedIn cover",
+                    "fa": "کاور لینکداین"
+                },
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "1:4",
+                "label": {
+                    "en": "1:4",
+                    "fa": "1:4"
+                },
+                "description": {
+                    "en": "LinkedIn logo",
+                    "fa": "لوگو لینکداین"
+                },
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            }
+        ],
+        "ai_attr": null,
+        "limited": true,
+        "type": "text"
+    },
+    {
+        "topic": "style",
+        "detail": {
+            "value": "style",
+            "label": {
+                "en": "Style",
+                "fa": "استایل"
+            },
+            "description": {
+                "en": "Choose a style for your design.",
+                "fa": "یک استایل برای طرح خود انتخاب کنید."
+            },
+            "children": null,
+            "image": null
+        },
+        "options": [
+            {
+                "value": "3D isometric",
+                "label": {
+                    "en": "3D Isometric",
+                    "fa": "سه بعدی ایزومتریک"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Analytic Drawing",
+                "label": {
+                    "en": "Analytic Drawing",
+                    "fa": "نقاشی تحلیلی"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Infographic Illustration",
+                "label": {
+                    "en": "Infographic Illustration",
+                    "fa": "تصویر اینفورگرافیک"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Coloring Book",
+                "label": {
+                    "en": "Coloring Book",
+                    "fa": "کتاب رنگ آمیزی"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Diagrammatic Drawing",
+                "label": {
+                    "en": "Diagrammatic Drawing",
+                    "fa": "طراحی دیاگرامی"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Double Exposure",
+                "label": {
+                    "en": "Double Exposure",
+                    "fa": "دوبل اکسپوژر"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Isometric Illustration",
+                "label": {
+                    "en": "Isometric Illustration",
+                    "fa": "طراحی ایزومتریک"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Low-Res Pixel Art",
+                "label": {
+                    "en": "Low-Res Pixel Art",
+                    "fa": "هنر پیکسلی"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Ornamental Watercolour",
+                "label": {
+                    "en": "Ornamental Watercolour",
+                    "fa": "آبرنگ تزئینی"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Paper Cut Craft Illustration",
+                "label": {
+                    "en": "Paper Cut Craft Illustration",
+                    "fa": "نقاشی کاغذ برشی"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Paper Quilling",
+                "label": {
+                    "en": "Paper Quilling",
+                    "fa": "کاغذ قلمکاری"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Collage",
+                "label": {
+                    "en": "Collage",
+                    "fa": "کلاژ"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Iridescent",
+                "label": {
+                    "en": "Iridescent",
+                    "fa": "پرنور"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Ukiyo-e Art",
+                "label": {
+                    "en": "Ukiyo-e Art",
+                    "fa": "هنر اوکیو"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Op Art",
+                "label": {
+                    "en": "Op Art",
+                    "fa": "هنر اپ"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Graffiti Art",
+                "label": {
+                    "en": "Graffiti Art",
+                    "fa": "هنر گرافیتی"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Dripping Art",
+                "label": {
+                    "en": "Dripping Art",
+                    "fa": "هنر ریزشی"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Stained Glass Window",
+                "label": {
+                    "en": "Stained Glass Window",
+                    "fa": "پنجره شیشه ای رنگی"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Anime Art",
+                "label": {
+                    "en": "Anime Art",
+                    "fa": "انیمه"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "One-Line Drawing",
+                "label": {
+                    "en": "One-Line Drawing",
+                    "fa": "اسکچ خطی"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            },
+            {
+                "value": "Polaroid Photo",
+                "label": {
+                    "en": "Polaroid Photo",
+                    "fa": "عکس پلاروید"
+                },
+                "description": null,
+                "children": null,
+                "image": "https://media.pixiee.io/v1/f/0adbb729-72ed-45a0-a023-dd0f4058d1b3/Native-Banners_All-ver1-2.webp"
+            }
+        ],
+        "ai_attr": [
+            {
+                "value": "translate",
+                "label": {
+                    "en": "Translate",
+                    "fa": "ترجمه"
+                },
+                "description": {
+                    "en": "Translate the text to another language.",
+                    "fa": "متن را به زبان دیگری ترجمه کنید."
+                },
+                "children": [
+                    {
+                        "value": "persian",
+                        "label": {
+                            "en": "Persian",
+                            "fa": "فارسی"
+                        },
+                        "description": {
+                            "en": "Translate the text to Persian.",
+                            "fa": "متن را به فارسی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "english",
+                        "label": {
+                            "en": "English",
+                            "fa": "انگلیسی"
+                        },
+                        "description": {
+                            "en": "Translate the text to English.",
+                            "fa": "متن را به انگلیسی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "arabic",
+                        "label": {
+                            "en": "Arabic",
+                            "fa": "عربی"
+                        },
+                        "description": {
+                            "en": "Translate the text to Arabic.",
+                            "fa": "متن را به عربی ترجمه کنید."
+                        },
+                        "children": null,
+                        "image": null
+                    }
+                ],
+                "image": null
+            },
+            {
+                "value": "tone",
+                "label": {
+                    "en": "Change Tone",
+                    "fa": "تغییر لحن"
+                },
+                "description": {
+                    "en": "Change the tone of the text.",
+                    "fa": "لحن متن را تغییر دهید."
+                },
+                "children": [
+                    {
+                        "value": "professional",
+                        "label": {
+                            "en": "professional",
+                            "fa": "حرفه‌ای"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to professional.",
+                            "fa": "لحن متن را به حرفه‌ای تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "informal",
+                        "label": {
+                            "en": "Informal",
+                            "fa": "غیر رسمی"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to informal.",
+                            "fa": "لحن متن را به غیر رسمی تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    },
+                    {
+                        "value": "friendly",
+                        "label": {
+                            "en": "Friendly",
+                            "fa": "دوستانه"
+                        },
+                        "description": {
+                            "en": "Change the tone of the text to friendly.",
+                            "fa": "لحن متن را به دوستانه تغییر دهید."
+                        },
+                        "children": null,
+                        "image": null
+                    }
+                ],
+                "image": null
+            },
+            {
+                "value": "rewrite",
+                "label": {
+                    "en": "Rewrite",
+                    "fa": "بازنویسی"
+                },
+                "description": {
+                    "en": "Rewrite the text.",
+                    "fa": "متن را بازنویسی کنید."
+                },
+                "children": null,
+                "image": null
+            },
+            {
+                "value": "shorten",
+                "label": {
+                    "en": "Shorten",
+                    "fa": "کوتاه کردن"
+                },
+                "description": {
+                    "en": "Shorten the text.",
+                    "fa": "متن را کوتاه کنید."
+                },
+                "children": null,
+                "image": null
+            }
+        ],
+        "limited": false,
+        "type": "text"
+    },
+    {
+        "topic": "sref",
+        "detail": {
+            "value": "sref",
+            "label": {
+                "en": "Style reference",
+                "fa": "مرجع استایل"
+            },
+            "description": {
+                "en": "Choose a style reference for your design.",
+                "fa": "یک تصویر به عنوان مرجع استایل برای طرح خود بارگذاری کنید."
+            },
+            "children": null,
+            "image": null
+        },
+        "options": [],
+        "ai_attr": null,
+        "limited": false,
+        "type": "image"
+    }
+]

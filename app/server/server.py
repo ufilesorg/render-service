@@ -64,7 +64,6 @@ async def usso_exception_handler(request: fastapi.Request, exc: USSOException):
 
 @app.exception_handler(pydantic.ValidationError)
 @app.exception_handler(fastapi.exceptions.ResponseValidationError)
-@app.exception_handler(fastapi.exceptions.RequestValidationError)
 async def pydantic_exception_handler(
     request: fastapi.Request, exc: pydantic.ValidationError
 ):
@@ -77,6 +76,18 @@ async def pydantic_exception_handler(
             "erros": json.loads(dumps(exc.errors())),
         },
     )
+
+
+@app.exception_handler(fastapi.exceptions.RequestValidationError)
+async def request_validation_exception_handler(
+    request: fastapi.Request, exc: fastapi.exceptions.RequestValidationError
+):
+    logging.error(
+        f"request_validation_exception:  {request.url} {exc}\n{(await request.body())[:100]}"
+    )
+    from fastapi.exception_handlers import request_validation_exception_handler
+
+    return await request_validation_exception_handler(request, exc)
 
 
 @app.exception_handler(Exception)

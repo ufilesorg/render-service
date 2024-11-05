@@ -50,15 +50,26 @@ async def translate(query: str, to: str = "en"):
     }
     if not languages.get(to):
         to = "en"
-    prompt = f"Translate the following text to '{to}': \"{query}\""
+    prompt = "\n".join(
+        [
+            f"You are perfect translator to {to} language.",
+            f"Just reply the answer in json format like",
+            f'`{{"answer": "Your translated text"}}`',
+            f"",
+            f"Translate the following text to '{to}': \"{query}\".",
+        ]
+    )
 
-    logging.warning(f"process_task {query}")
+    messages = [{"content": prompt}]
+    response = await answer_messages(messages)
+    logging.info(f"process_task {query} {response}")
+    return response["answer"]
 
     session = await metis_client.create_session()
-    message = await metis_client.send_message(session, prompt)
+    response = await metis_client.send_message(session, prompt)
     await metis_client.delete_session(session)
-    resp = message.content
-    return resp.strip('"')
+    resp_text = backtick_formatter(response.content)
+    return resp_text
 
 
 class MidjourneyDetails(BaseModel):

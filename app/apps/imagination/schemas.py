@@ -91,8 +91,12 @@ class ImaginationEnginesSchema(BaseModel):
 
 
 class ImagineCreateSchema(BaseModel):
-    prompt: str
-    context: dict = {}
+    prompt: str | None = None
+    delineation: str | None = None
+    context: list[dict[str, Any]] | None = None
+    enhance_prompt: bool = False
+    number: int = 1
+
     engine: ImaginationEngines = ImaginationEngines.midjourney
 
 
@@ -103,8 +107,9 @@ class ImagineResponse(BaseModel):
 
 
 class ImagineSchema(TaskMixin, OwnedEntitySchema):
-    prompt: str
-    context: dict[str, Any] | None = None
+    prompt: str | None = None
+    delineation: str | None = None
+    context: list[dict[str, Any]] | None = None
     engine: ImaginationEngines = ImaginationEngines.midjourney
     mode: Literal["imagine"] = "imagine"
     status: ImaginationStatus = ImaginationStatus.draft
@@ -116,7 +121,7 @@ class ImagineWebhookData(BaseModel):
     status: ImaginationStatus
     percentage: int
     result: dict[str, Any] | None = None
-    error: str | None = None
+    error: Any | None = None
 
     @field_validator("percentage", mode="before")
     def validate_percentage(cls, value):

@@ -17,8 +17,7 @@ from metisai.async_metis import AsyncMetisBot
 from PIL import Image
 from server.config import Settings
 from usso.async_session import AsyncUssoSession
-from utils import aionetwork, imagetools, ufiles
-from utils.ai import Midjourney
+from utils import ai, aionetwork, imagetools, ufiles
 
 
 def sanitize_filename(prompt: str):
@@ -176,16 +175,36 @@ async def request_imagine_metis(
     await bot.send_message_async(session, f"/imagine {imagination.prompt}")
 
 
+async def create_prompt(imagination: Imagination, enhance: bool = False):
+    async def get_prompt_row(item: dict):
+        return f'{item.get("topic", "")} {await ai.translate(item.get("value", ""))}'
+
+    prompt = await ai.translate(imagination.prompt or imagination.delineation or "")
+    context = await asyncio.gather(
+        *[get_prompt_row(item) for item in imagination.context or []]
+    )
+    prompt += ", " + ", ".join(context)
+    prompt = prompt.strip(",").strip()
+
+    if enhance:
+        # TODO: Enhance the prompt
+        pass
+
+    return prompt
+
+
 @try_except_wrapper
 async def imagine_request(imagination: Imagination):
+    prompt = await create_prompt(imagination)
     if imagination.mode != "imagine":
         return
 
     if imagination.engine != ImaginationEngines.midjourney:
         raise NotImplementedError("Only Midjourney engine is supported")
 
-    mid_request = await Midjourney().imagine(
-        imagination.prompt, callback=imagination.webhook_url
+    imagination.prompt = prompt
+    mid_request = await ai.Midjourney().imagine(
+        prompt, callback=imagination.webhook_url
     )
 
     imagination.meta_data = (imagination.meta_data or {}) | mid_request.model_dump()
@@ -208,7 +227,7 @@ async def imagine_update(imagination: Imagination, i=0):
         raise ValueError("Missing Midjourney task id")
 
     task_id = imagination.meta_data.get("uuid")
-    mid_result = await Midjourney().get_result(task_id)
+    mid_result = await ai.Midjourney().get_result(task_id)
     mid_result.result = (mid_result.result or {}) | {"uri": mid_result.uri}
 
     await process_imagine_webhook(
