@@ -3,7 +3,7 @@ from typing import Any, Literal
 
 from fastapi_mongo_base.schemas import OwnedEntitySchema
 from fastapi_mongo_base.tasks import TaskMixin, TaskStatusEnum
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 
 class ImaginationStatus(str, Enum):
@@ -58,6 +58,10 @@ class ImaginationStatus(str, Enum):
 
 class ImaginationEngines(str, Enum):
     midjourney = "midjourney"
+    ideogram = "ideogram"
+    flux_schnell = "flux_schnell"
+    stability = "stability"
+    flux_1_1 = "flux_1.1"
     flux = "flux"
     dalle = "dalle"
     leonardo = "leonardo"
@@ -67,10 +71,21 @@ class ImaginationEngines(str, Enum):
         return {
             ImaginationEngines.midjourney: "1fff8298-4f56-4912-89b4-3529106c5a0a",
             ImaginationEngines.flux: "68ec6038-6701-4f9b-a3f5-0c674b106f0e",
-            ImaginationEngines.dalle: "8d39c1c3-d91d-40e1-b781-ac53193799e6",
+            ImaginationEngines.dalle: "59631f67-3199-4e47-af7f-18eb44f69ea2",
             ImaginationEngines.leonardo: "4b69d78d-e454-4f4b-93ed-427b46368977",
         }[self]
 
+    def get_class(self, imagination: Any):
+        from utils.ai import Midjourney, Replicate, Dalle
+        return {
+            ImaginationEngines.dalle: lambda: Dalle(imagination),
+            ImaginationEngines.midjourney: lambda: Midjourney(imagination),
+            ImaginationEngines.ideogram: lambda: Replicate(imagination, self.value),
+            ImaginationEngines.flux_schnell: lambda: Replicate(imagination, self.value),
+            ImaginationEngines.stability: lambda: Replicate(imagination, self.value),
+            ImaginationEngines.flux_1_1: lambda: Replicate(imagination, self.value),
+        }[self]()
+        
     @property
     def thumbnail_url(self):
         return "https://cdn.metisai.com/images/engines/{}.png".format(self.value)
@@ -92,12 +107,23 @@ class ImaginationEnginesSchema(BaseModel):
 
 class ImagineCreateSchema(BaseModel):
     prompt: str | None = None
+    engine: ImaginationEngines = ImaginationEngines.midjourney
+    aspect_ratio: str | None = '1:1'
     delineation: str | None = None
     context: list[dict[str, Any]] | None = None
     enhance_prompt: bool = False
     number: int = 1
 
-    engine: ImaginationEngines = ImaginationEngines.midjourney
+    @model_validator(mode="after")
+    def validate_aspect_ratio(cls, values):
+        aspect_ratio = values.aspect_ratio
+        engine = values.engine
+        validated, message = engine.get_class(None).validate_ratio(aspect_ratio)
+        
+        if not validated:
+            raise ValueError(f"Aspect ratio: {message}")
+        return values
+
 
 
 class ImagineResponse(BaseModel):
@@ -109,6 +135,7 @@ class ImagineResponse(BaseModel):
 class ImagineSchema(TaskMixin, OwnedEntitySchema):
     prompt: str | None = None
     delineation: str | None = None
+    aspect_ratio: str | None = None
     context: list[dict[str, Any]] | None = None
     engine: ImaginationEngines = ImaginationEngines.midjourney
     mode: Literal["imagine"] = "imagine"

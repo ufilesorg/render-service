@@ -27,9 +27,6 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
             tags=["Imagination"],
             prefix="",
         )
-        self.metis = AsyncMetisBot(
-            api_key=Settings.METIS_API_KEY, bot_id=Settings.METIS_BOT_ID
-        )
 
     def config_routes(self, **kwargs):
         self.router.add_api_route(

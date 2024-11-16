@@ -2,9 +2,10 @@ import asyncio
 import logging
 
 from fastapi_mongo_base.models import OwnedEntity
+from pydantic import BaseModel, field_validator
 from server.config import Settings
 
-from .schemas import ImagineSchema
+from .schemas import ImagineSchema, ImaginationStatus
 
 
 class Imagination(ImagineSchema, OwnedEntity):
@@ -55,3 +56,62 @@ class Imagination(ImagineSchema, OwnedEntity):
         return await super(OwnedEntity, cls).get_item(
             uid, user_id=user_id, *args, **kwargs
         )
+
+
+# Required data
+class EnginesDetails(BaseModel):
+    id: str
+    prompt: str
+    status: ImaginationStatus
+    percentage: int | None = None
+    result: dict | None = None
+    
+    @field_validator("percentage", mode="before")
+    def validate_percentage(cls, value):
+        if value is None:
+            return -1
+        if isinstance(value, str):
+            return int(value.replace("%", ""))
+        if value < -1:
+            return -1
+        if value > 100:
+            return 100
+        return value
+    
+
+class Engine():
+    def __init__(self, imagination) -> None:
+        self.imagination = imagination
+
+    # Get Result from service(client / API)
+    async def result(self, **kwargs):
+        pass
+    
+    # Validate Aspect Ratio
+    async def validate_ratio(self, aspect_ratio: str) -> (bool, str | None):
+        pass
+    
+    # Send request to service(client / API)
+    async def _request(self, prompt: str, command, **kwargs) -> EnginesDetails:
+        pass
+    
+    # Get property from imagination meta_data
+    # imagination.meta_data: It is a response sent from the service
+    def _get_data(self, name: str, **kwargs):
+        value = (self.imagination.meta_data or {}).get(name, None)
+        if value is None:
+            raise ValueError(f"Missing value {name}")
+        return value
+    
+    # Get current request service(Convert service status to ImaginationStatus)
+    def _status(self, status: str) -> ImaginationStatus:
+        pass
+    
+    async def imagine(self, prompt: str, **kwargs):
+        prompt = " ".join([im for im in kwargs.get("images", [])] + [prompt])
+        response = await self._request(prompt, "imagine", **kwargs)
+        return response
+    
+    # Convert service response to EnginesDetails
+    async def _result_to_details(self, res) -> EnginesDetails:
+        pass
