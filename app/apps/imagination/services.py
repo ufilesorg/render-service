@@ -119,7 +119,7 @@ async def process_result(imagination: Imagination, generated_url: str):
         image_bytes = await aionetwork.aio_request_binary(url=generated_url)
         images = [Image.open(image_bytes)]
         file_upload_dir = "imaginations"
-        
+
         # Crop the image into 4 sections for midjourney engine
         if imagination.engine == ImaginationEngines.midjourney:
             images = imagetools.crop_image(images[0], sections=(2, 2))
@@ -183,12 +183,12 @@ async def create_prompt(imagination: Imagination, enhance: bool = False):
 
     # Translate prompt using ai
     prompt = await ai.translate(imagination.prompt or imagination.delineation or "")
-    
+
     # Convert prompt ai properties to array
     context = await asyncio.gather(
         *[get_prompt_row(item) for item in imagination.context or []]
     )
-    
+
     # Create final prompt using user prompt and prompt properties
     prompt += ", " + ", ".join(context)
     prompt = prompt.strip(",").strip()
@@ -202,27 +202,23 @@ async def create_prompt(imagination: Imagination, enhance: bool = False):
 
 @try_except_wrapper
 async def imagine_request(imagination: Imagination):
-    if imagination.mode != "imagine":
-        return
     # Get Engine class and validate it
     Item = imagination.engine.get_class(imagination)
     if Item is None:
-        raise NotImplementedError("The supported engines are Midjourney, Replicate and Dalle.")
-    
-    # Create prompt using context attributes (ratio, style ...)
-    prompt = await create_prompt(imagination)
+        raise NotImplementedError(
+            "The supported engines are Midjourney, Replicate and Dalle."
+        )
+
+    prompt = await create_prompt(imagination) if imagination.mode == "imagine" else ""
     imagination.prompt = prompt
-    
-    
+
     # Request to client or api using Engine classes
-    mid_request = await Item.imagine(
-        prompt, callback=imagination.webhook_url
-    )
-    
+    mid_request = await Item.imagine(prompt, callback=imagination.webhook_url)
+
     # Store Engine response
     imagination.meta_data = (imagination.meta_data or {}) | mid_request.model_dump()
     await imagination.save_report(f"Midjourney has been requested.")
-    
+
     # Create Short Polling process know the status of the request
     new_task = asyncio.create_task(imagine_update(imagination))
     return new_task
@@ -238,10 +234,10 @@ async def imagine_update(imagination: Imagination, i=0):
     Item = imagination.engine.get_class(imagination)
 
     # Get Result from service by engine class
-    # And Update imagination status    
+    # And Update imagination status
     result = await Item.result()
     imagination.status = result.status
-    
+
     # Process Result
     await process_imagine_webhook(
         imagination, ImagineWebhookData(**result.model_dump())

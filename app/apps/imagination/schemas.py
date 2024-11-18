@@ -66,6 +66,9 @@ class ImaginationEngines(str, Enum):
     dalle = "dalle"
     leonardo = "leonardo"
     imagen = "imagen"
+    bg_rm_cjwbw = "bg_rm_cjwbw"
+    bg_rm_lucataco = "bg_rm_lucataco"
+    bg_rm_pollinations = "bg_rm_pollinations"
 
     @property
     def metis_bot_id(self):
@@ -78,6 +81,7 @@ class ImaginationEngines(str, Enum):
 
     def get_class(self, imagination: Any):
         from utils.ai import Midjourney, Replicate, Dalle, Imagen
+        from utils.background_removal import ReplicateBackgroundRemoval
 
         return {
             ImaginationEngines.dalle: lambda: Dalle(imagination),
@@ -87,6 +91,15 @@ class ImaginationEngines(str, Enum):
             ImaginationEngines.stability: lambda: Replicate(imagination, self.value),
             ImaginationEngines.flux_1_1: lambda: Replicate(imagination, self.value),
             ImaginationEngines.imagen: lambda: Imagen(imagination),
+            ImaginationEngines.bg_rm_cjwbw: lambda: ReplicateBackgroundRemoval(
+                imagination, self.value
+            ),
+            ImaginationEngines.bg_rm_lucataco: lambda: ReplicateBackgroundRemoval(
+                imagination, self.value
+            ),
+            ImaginationEngines.bg_rm_pollinations: lambda: ReplicateBackgroundRemoval(
+                imagination, self.value
+            ),
         }[self]()
 
     @property
@@ -112,19 +125,20 @@ class ImagineCreateSchema(BaseModel):
     prompt: str | None = None
     engine: ImaginationEngines = ImaginationEngines.midjourney
     aspect_ratio: str | None = "1:1"
+    image: str | None = None
     delineation: str | None = None
+    mode: Literal["imagine", "background-removal"] = "imagine"
     context: list[dict[str, Any]] | None = None
     enhance_prompt: bool = False
     number: int = 1
 
     @model_validator(mode="after")
-    def validate_aspect_ratio(cls, values):
-        aspect_ratio = values.aspect_ratio
+    def validate_data(cls, values):
         engine = values.engine
-        validated, message = engine.get_class(None).validate_ratio(aspect_ratio)
+        validated, message = engine.get_class(None).validate(values)
 
         if not validated:
-            raise ValueError(f"Aspect ratio: {message}")
+            raise ValueError(message)
         return values
 
 
@@ -137,10 +151,11 @@ class ImagineResponse(BaseModel):
 class ImagineSchema(TaskMixin, OwnedEntitySchema):
     prompt: str | None = None
     delineation: str | None = None
-    aspect_ratio: str | None = None
+    aspect_ratio: str | None = "1:1"
     context: list[dict[str, Any]] | None = None
     engine: ImaginationEngines = ImaginationEngines.midjourney
-    mode: Literal["imagine"] = "imagine"
+    mode: Literal["imagine", "background-removal"] = "imagine"
+    image: str | None = None
     status: ImaginationStatus = ImaginationStatus.draft
     results: list[ImagineResponse] | None = None
 
