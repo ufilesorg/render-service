@@ -21,3 +21,4 @@ metisai
 langdetect
 pillow
 apscheduler
+google-generativeai
