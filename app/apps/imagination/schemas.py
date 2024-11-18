@@ -65,6 +65,7 @@ class ImaginationEngines(str, Enum):
     flux = "flux"
     dalle = "dalle"
     leonardo = "leonardo"
+    imagen = "imagen"
 
     @property
     def metis_bot_id(self):
@@ -76,7 +77,8 @@ class ImaginationEngines(str, Enum):
         }[self]
 
     def get_class(self, imagination: Any):
-        from utils.ai import Midjourney, Replicate, Dalle
+        from utils.ai import Midjourney, Replicate, Dalle, Imagen
+
         return {
             ImaginationEngines.dalle: lambda: Dalle(imagination),
             ImaginationEngines.midjourney: lambda: Midjourney(imagination),
@@ -84,8 +86,9 @@ class ImaginationEngines(str, Enum):
             ImaginationEngines.flux_schnell: lambda: Replicate(imagination, self.value),
             ImaginationEngines.stability: lambda: Replicate(imagination, self.value),
             ImaginationEngines.flux_1_1: lambda: Replicate(imagination, self.value),
+            ImaginationEngines.imagen: lambda: Imagen(imagination),
         }[self]()
-        
+
     @property
     def thumbnail_url(self):
         return "https://cdn.metisai.com/images/engines/{}.png".format(self.value)
@@ -108,7 +111,7 @@ class ImaginationEnginesSchema(BaseModel):
 class ImagineCreateSchema(BaseModel):
     prompt: str | None = None
     engine: ImaginationEngines = ImaginationEngines.midjourney
-    aspect_ratio: str | None = '1:1'
+    aspect_ratio: str | None = "1:1"
     delineation: str | None = None
     context: list[dict[str, Any]] | None = None
     enhance_prompt: bool = False
@@ -119,11 +122,10 @@ class ImagineCreateSchema(BaseModel):
         aspect_ratio = values.aspect_ratio
         engine = values.engine
         validated, message = engine.get_class(None).validate_ratio(aspect_ratio)
-        
+
         if not validated:
             raise ValueError(f"Aspect ratio: {message}")
         return values
-
 
 
 class ImagineResponse(BaseModel):

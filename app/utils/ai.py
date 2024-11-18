@@ -2,12 +2,15 @@ import json
 import logging
 import os
 import replicate
-from datetime import datetime
-from typing import Literal, Any
-
+import google.generativeai as genai
+import google.generativeai.vision_models as genaiaa
 import aiohttp
 import langdetect
 import singleton
+
+
+from datetime import datetime
+from typing import Literal, Any
 from metisai.async_metis import AsyncMetisBot
 from pydantic import BaseModel, field_validator
 from utils.texttools import backtick_formatter
@@ -76,6 +79,7 @@ async def translate(query: str, to: str = "en"):
     resp_text = backtick_formatter(response.content)
     return resp_text
 
+
 class MidjourneyDetails(EnginesDetails, BaseModel):
     deleted: bool = False
     active: bool = True
@@ -95,6 +99,7 @@ class MidjourneyDetails(EnginesDetails, BaseModel):
     message: str | None = None
     sender_data: dict | None = None
 
+
 class Midjourney(Engine, metaclass=singleton.Singleton):
     def __init__(self, imagination) -> None:
         super().__init__(imagination)
@@ -107,9 +112,11 @@ class Midjourney(Engine, metaclass=singleton.Singleton):
         }
 
     async def result(self, **kwargs) -> MidjourneyDetails:
-        id = self._get_data('id')
+        id = self._get_data("id")
         async with aiohttp.ClientSession() as session:
-            async with session.get(f"{self.api_url}/{id}", headers=self.headers) as response:
+            async with session.get(
+                f"{self.api_url}/{id}", headers=self.headers
+            ) as response:
                 response.raise_for_status()
                 result = await response.json()
                 return await self._result_to_details(result)
@@ -131,7 +138,12 @@ class Midjourney(Engine, metaclass=singleton.Singleton):
                 result = await response.json()
                 return await self._result_to_details(result)
 
-    def _status(self, status: Literal["initialized", "queue", "waiting", "running", "completed", "error"] = "initialized"):
+    def _status(
+        self,
+        status: Literal[
+            "initialized", "queue", "waiting", "running", "completed", "error"
+        ] = "initialized",
+    ):
         return {
             "initialized": ImaginationStatus.init,
             "queue": ImaginationStatus.queue,
@@ -140,24 +152,28 @@ class Midjourney(Engine, metaclass=singleton.Singleton):
             "completed": ImaginationStatus.completed,
             "error": ImaginationStatus.error,
         }.get(status, ImaginationStatus.error)
-        
+
     async def _result_to_details(self, result: dict[str, Any], **kwargs):
-        status = self._status(result['status'])
-        result.pop('status', None)
+        status = self._status(result["status"])
+        result.pop("status", None)
         return MidjourneyDetails(
             **result,
-            id=result.get('uuid'),
+            id=result.get("uuid"),
             status=status,
-            result={'uri': result['uri']} if result['uri'] else None
+            result={"uri": result["uri"]} if result["uri"] else None,
         )
+
 
 class ReplicateDetails(EnginesDetails):
     input: dict[str, Any]
     model: Literal[
-        "ideogram-ai/ideogram-v2-turbo", "black-forest-labs/flux-schnell", "black-forest-labs/flux-1.1-pro", "stability-ai/stable-diffusion-3"
+        "ideogram-ai/ideogram-v2-turbo",
+        "black-forest-labs/flux-schnell",
+        "black-forest-labs/flux-1.1-pro",
+        "stability-ai/stable-diffusion-3",
     ] = "ideogram-ai/ideogram-v2-turbo"
-    
-    
+
+
 class Replicate(Engine):
     def __init__(self, imagination, name) -> None:
         super().__init__(imagination)
@@ -169,25 +185,69 @@ class Replicate(Engine):
         }[name]
 
     async def result(self, **kwargs) -> ReplicateDetails:
-        id = self._get_data('id')
+        id = self._get_data("id")
         prediction = await replicate.predictions.async_get(id)
         return await self._result_to_details(prediction)
-    
+
     async def _request(self, prompt, command, **kwargs) -> ReplicateDetails:
         prediction = replicate.predictions.create(
             model=self.application_name,
-            input={'prompt': prompt, 'aspect_ratio': self.imagination.aspect_ratio},
-            # webhook=webhook,
-            # webhook_events_filter=["completed"]
+            input={"prompt": prompt, "aspect_ratio": self.imagination.aspect_ratio},
+            webhook=webhook,
+            webhook_events_filter=["completed"],
         )
         return await self._result_to_details(prediction)
 
     def validate_ratio(self, aspect_ratio):
         aspect_ratios = {
-            "ideogram-ai/ideogram-v2-turbo": {"1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "16:10", "10:16", "3:1", "1:3" },
-            "black-forest-labs/flux-schnell": {"1:1", "16:9", "21:9", "3:2", "2:3", "4:5", "5:4", "3:4", "4:3", "9:16", "9:21"},
-            "black-forest-labs/flux-1.1-pro": {"1:1", "16:9", "2:3", "3:2", "4:5", "5:4", "9:16", "3:4", "4:3"},
-            "stability-ai/stable-diffusion-3": {"1:1", "16:9", "21:9", "3:2", "2:3", "4:5", "5:4", "9:16", "9:21"},
+            "ideogram-ai/ideogram-v2-turbo": {
+                "1:1",
+                "16:9",
+                "9:16",
+                "4:3",
+                "3:4",
+                "3:2",
+                "2:3",
+                "16:10",
+                "10:16",
+                "3:1",
+                "1:3",
+            },
+            "black-forest-labs/flux-schnell": {
+                "1:1",
+                "16:9",
+                "21:9",
+                "3:2",
+                "2:3",
+                "4:5",
+                "5:4",
+                "3:4",
+                "4:3",
+                "9:16",
+                "9:21",
+            },
+            "black-forest-labs/flux-1.1-pro": {
+                "1:1",
+                "16:9",
+                "2:3",
+                "3:2",
+                "4:5",
+                "5:4",
+                "9:16",
+                "3:4",
+                "4:3",
+            },
+            "stability-ai/stable-diffusion-3": {
+                "1:1",
+                "16:9",
+                "21:9",
+                "3:2",
+                "2:3",
+                "4:5",
+                "5:4",
+                "9:16",
+                "9:21",
+            },
         }[self.application_name]
 
         aspect_ratio_valid = aspect_ratio in aspect_ratios
@@ -196,8 +256,11 @@ class Replicate(Engine):
         else:
             message = None
         return aspect_ratio_valid, message
-    
-    def _status(self, status: Literal["starting", "processing", "succeeded", "failed", "canceled"]):
+
+    def _status(
+        self,
+        status: Literal["starting", "processing", "succeeded", "failed", "canceled"],
+    ):
         return {
             "starting": ImaginationStatus.init,
             "canceled": ImaginationStatus.cancelled,
@@ -208,43 +271,46 @@ class Replicate(Engine):
 
     async def _result_to_details(self, prediction: replicate.prediction.Prediction):
         prediction_data = prediction.__dict__.copy()
-        prediction_data.pop('status', None)
-        prediction_data.pop('model', None)
+        prediction_data.pop("status", None)
+        prediction_data.pop("model", None)
         return ReplicateDetails(
             **prediction_data,
-            prompt=prediction.input['prompt'],
+            prompt=prediction.input["prompt"],
             status=self._status(prediction.status),
             model=self.application_name,
-            result={'uri': prediction.output[0]} if prediction.output else None,
-            percentage=100
+            result={"uri": prediction.output[0]} if prediction.output else None,
+            percentage=100,
         )
 
 
 class DalleDetails(EnginesDetails):
     session_id: str
-    
+
+
 class Dalle(Engine):
     def __init__(self, imagination) -> None:
         super().__init__(imagination)
         if imagination:
             self.client = AsyncMetisBot(
                 api_key=Settings.METIS_API_KEY,
-                bot_id=ImaginationEngines.dalle.metis_bot_id
+                bot_id=ImaginationEngines.dalle.metis_bot_id,
             )
 
     async def result(self, **kwargs) -> DalleDetails:
-        id = self._get_data('id')
-        session_id = self._get_data('session_id')
+        id = self._get_data("id")
+        session_id = self._get_data("session_id")
         task = await self.client.retrieve_async_task(session_id, id)
         return await self._result_to_details(task, task_id=id, session_id=session_id)
-    
+
     async def _request(self, prompt, command, **kwargs) -> DalleDetails:
-        prompt += f', in a {self.imagination.aspect_ratio} aspect ratio'
+        prompt += f", in a {self.imagination.aspect_ratio} aspect ratio"
         self.imagination.prompt = prompt
         session = await self.client.create_session()
         res = await self.client.send_message_async(session, f"/imagine {prompt}")
         task = await self.client.retrieve_async_task(session, res)
-        return await self._result_to_details(task, task_id=res.taskId, session_id=session.id)
+        return await self._result_to_details(
+            task, task_id=res.taskId, session_id=session.id
+        )
 
     def _status(self, status: Literal["RUNNING", "FINISHED", "FAILED"]):
         return {
@@ -260,18 +326,87 @@ class Dalle(Engine):
         else:
             message = None
         return aspect_ratio_valid, message
-    
+
     async def _result_to_details(self, task: TaskResult, **kwargs):
         task_data = task.__dict__.copy()
-        session_id = kwargs.get('session_id')
-        task_id = kwargs.get('task_id')
+        session_id = kwargs.get("session_id")
+        task_id = kwargs.get("task_id")
         status = self._status(task.status)
-        task_data.pop('status', None)
+        task_data.pop("status", None)
         return DalleDetails(
             **task_data,
             id=task_id,
             session_id=session_id,
             status=status,
             prompt=self.imagination.prompt,
-            result={'uri': task.message.attachments[0].content} if task.message else None,
+            result=(
+                {"uri": task.message.attachments[0].content} if task.message else None
+            ),
+        )
+
+
+class ImagenDetails(EnginesDetails):
+    session_id: str
+
+
+class Imagen(Engine):
+    def __init__(self, imagination) -> None:
+        super().__init__(imagination)
+        if imagination:
+            genai.configure(api_key=Settings.imagen_apikey)
+            print(genaiaa)
+            print(genai)
+            print(genaiaa.ImageGenerationModel)
+            self.imagen = genaiaa.ImageGenerationModel("imagen-3.0-generate-001")
+
+    async def result(self, **kwargs) -> ImagenDetails:
+        id = self._get_data("id")
+        session_id = self._get_data("session_id")
+        task = await self.client.retrieve_async_task(session_id, id)
+        return await self._result_to_details(task, task_id=id, session_id=session_id)
+
+    async def _request(self, prompt, command, **kwargs) -> ImagenDetails:
+        result = self.imagen.generate_images(
+            prompt=prompt,
+            number_of_images=1,
+            person_generation="allow_adult",
+            aspect_ratio=self.imagination.aspect_ratio,
+            # safety_filter_level="block_only_high",
+            # negative_prompt="Outside",
+        )
+        print(result)
+        return await self._result_to_details(
+            task, task_id=res.taskId, session_id=session.id
+        )
+
+    def _status(self, status: Literal["RUNNING", "FINISHED", "FAILED"]):
+        return {
+            "RUNNING": ImaginationStatus.processing,
+            "FINISHED": ImaginationStatus.completed,
+            "FAILED": ImaginationStatus.error,
+        }.get(status, ImaginationStatus.error)
+
+    def validate_ratio(self, aspect_ratio):
+        aspect_ratio_valid = aspect_ratio in {"1:1", "3:4", "4:3", "9:16", "16:9"}
+        if not aspect_ratio_valid:
+            message = "aspect_ratio must be one of them 1:1, 3:4, 4:3, 9:16 and 16:9"
+        else:
+            message = None
+        return aspect_ratio_valid, message
+
+    async def _result_to_details(self, task: TaskResult, **kwargs):
+        task_data = task.__dict__.copy()
+        session_id = kwargs.get("session_id")
+        task_id = kwargs.get("task_id")
+        status = self._status(task.status)
+        task_data.pop("status", None)
+        return ImagenDetails(
+            **task_data,
+            id=task_id,
+            session_id=session_id,
+            status=status,
+            prompt=self.imagination.prompt,
+            result=(
+                {"uri": task.message.attachments[0].content} if task.message else None
+            ),
         )
