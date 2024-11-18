@@ -25,6 +25,7 @@ class Settings(metaclass=Singleton):
     update_time: int = 10
 
     app_id: str = os.getenv("APP_ID")
+    imagen_apikey: str = os.getenv("GOOGLE_IMAGEN_APIKEY")
     app_secret: str = os.getenv("APP_SECRET")
 
     JWT_CONFIG: str = os.getenv(
