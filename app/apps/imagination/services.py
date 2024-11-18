@@ -217,7 +217,7 @@ async def imagine_request(imagination: Imagination):
 @delay_execution(Settings.update_time)
 async def imagine_update(imagination: Imagination, i=0):
     # logging.info(f"Updating imagination {i} {imagination}")
-    if imagination.status.is_done:
+    if imagination.statuhas.is_done:
         return
 
     if imagination.engine != ImaginationEngines.midjourney:
