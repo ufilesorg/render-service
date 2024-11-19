@@ -8,8 +8,6 @@ import aiohttp
 import langdetect
 import singleton
 
-
-from replicate.identifier import ModelVersionIdentifier
 from datetime import datetime
 from typing import Literal, Any
 from metisai.async_metis import AsyncMetisBot
@@ -106,8 +104,8 @@ class MidjourneyDetails(EnginesDetails, BaseModel):
 
 
 class Midjourney(Engine, metaclass=singleton.Singleton):
-    def __init__(self, imagination) -> None:
-        super().__init__(imagination)
+    def __init__(self, item) -> None:
+        super().__init__(item)
         self.api_url = "https://mid.aision.io/task"
         self.token = os.getenv("MIDAPI_TOKEN")
 
@@ -126,10 +124,10 @@ class Midjourney(Engine, metaclass=singleton.Singleton):
                 result = await response.json()
                 return await self._result_to_details(result)
 
-    async def _request(self, prompt, **kwargs) -> MidjourneyDetails:
+    async def _request(self, **kwargs) -> MidjourneyDetails:
         payload = json.dumps(
             {
-                "prompt": prompt,
+                "prompt": self.item.prompt,
                 "command": "imagine",
                 "callback": kwargs.get("callback", None),
             }
@@ -183,28 +181,13 @@ class ReplicateDetails(EnginesDetails):
 
 
 class Replicate(Engine):
-    def __init__(self, imagination, name) -> None:
-        super().__init__(imagination)
+    def __init__(self, item, name) -> None:
+        super().__init__(item)
         self.application_name = {
             "ideogram": "ideogram-ai/ideogram-v2-turbo",
             "flux_schnell": "black-forest-labs/flux-schnell",
             "flux_1.1": "black-forest-labs/flux-1.1-pro",
             "stability": "stability-ai/stable-diffusion-3",
-            "bg_rm_cjwbw": ModelVersionIdentifier(
-                "cjwbw",
-                "rembg",
-                "fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003",
-            ),
-            "bg_rm_lucataco": ModelVersionIdentifier(
-                "lucataco",
-                "remove",
-                "bg:95fcc2a26d3899cd6c2691c900465aaeff466285a65c14638cc5f36f34befaf1",
-            ),
-            "bg_rm_pollinations": ModelVersionIdentifier(
-                "pollinations",
-                "modnet",
-                "da7d45f3b836795f945f221fc0b01a6d3ab7f5e163f13208948ad436001e2255",
-            ),
         }[name]
 
     async def result(self, **kwargs) -> ReplicateDetails:
@@ -212,11 +195,11 @@ class Replicate(Engine):
         prediction = await replicate.predictions.async_get(id)
         return await self._result_to_details(prediction)
 
-    async def _request(self, prompt, **kwargs) -> ReplicateDetails:
+    async def _request(self, **kwargs) -> ReplicateDetails:
         prediction = replicate.predictions.create(
             model=self.application_name,
-            input={"prompt": prompt, "aspect_ratio": self.imagination.aspect_ratio},
-            webhook=self.imagination.webhook_url,
+            input={"prompt": self.item.prompt, "aspect_ratio": self.item.aspect_ratio},
+            webhook=self.item.webhook_url,
             webhook_events_filter=["completed"],
         )
         return await self._result_to_details(prediction)
@@ -273,17 +256,11 @@ class Replicate(Engine):
             },
         }[self.application_name]
 
-        aspect_ratio_valid = (
-            data.mode == "imagine" and data.aspect_ratio in aspect_ratios
-        )
+        aspect_ratio_valid = data.aspect_ratio in aspect_ratios
         message = (
-            "Mode must be 'imagine'."
-            if data.mode != "imagine"
-            else (
-                f"aspect_ratio must be one of them {aspect_ratios}"
-                if not aspect_ratio_valid
-                else None
-            )
+            f"aspect_ratio must be one of them {aspect_ratios}"
+            if not aspect_ratio_valid
+            else None
         )
         return aspect_ratio_valid, message
 
@@ -318,9 +295,9 @@ class DalleDetails(EnginesDetails):
 
 
 class Dalle(Engine):
-    def __init__(self, imagination) -> None:
-        super().__init__(imagination)
-        if imagination:
+    def __init__(self, item) -> None:
+        super().__init__(item)
+        if item:
             self.client = AsyncMetisBot(
                 api_key=Settings.METIS_API_KEY,
                 bot_id=ImaginationEngines.dalle.metis_bot_id,
@@ -332,11 +309,12 @@ class Dalle(Engine):
         task = await self.client.retrieve_async_task(session_id, id)
         return await self._result_to_details(task, task_id=id, session_id=session_id)
 
-    async def _request(self, prompt, **kwargs) -> DalleDetails:
-        prompt += f", in a {self.imagination.aspect_ratio} aspect ratio"
-        self.imagination.prompt = prompt
+    async def _request(self, **kwargs) -> DalleDetails:
+        self.item.prompt += f", in a {self.item.aspect_ratio} aspect ratio"
         session = await self.client.create_session()
-        res = await self.client.send_message_async(session, f"/imagine {prompt}")
+        res = await self.client.send_message_async(
+            session, f"/imagine {self.item.prompt}"
+        )
         task = await self.client.retrieve_async_task(session, res)
         return await self._result_to_details(
             task, task_id=res.taskId, session_id=session.id
@@ -350,19 +328,15 @@ class Dalle(Engine):
         }.get(status, ImaginationStatus.error)
 
     def validate(self, data: ImagineCreateSchema):
-        aspect_ratio_valid = data.mode == "imagine" and data.aspect_ratio in {
+        aspect_ratio_valid = data.aspect_ratio in {
             "16:9",
             "9:16",
             "1:1",
         }
         message = (
-            "Mode must be 'imagine'."
-            if data.mode != "imagine"
-            else (
-                "aspect_ratio must be one of them 16:9 or 9:16 or 1:1"
-                if not aspect_ratio_valid
-                else None
-            )
+            "aspect_ratio must be one of them 16:9 or 9:16 or 1:1"
+            if not aspect_ratio_valid
+            else None
         )
         return aspect_ratio_valid, message
 
@@ -377,7 +351,7 @@ class Dalle(Engine):
             id=task_id,
             session_id=session_id,
             status=status,
-            prompt=self.imagination.prompt,
+            prompt=self.item.prompt,
             result=(
                 {"uri": task.message.attachments[0].content} if task.message else None
             ),
@@ -389,9 +363,9 @@ class ImagenDetails(EnginesDetails):
 
 
 class Imagen(Engine):
-    def __init__(self, imagination) -> None:
-        super().__init__(imagination)
-        if imagination:
+    def __init__(self, item) -> None:
+        super().__init__(item)
+        if item:
             genai.configure(api_key=Settings.imagen_apikey)
             self.imagen = genaiaa.ImageGenerationModel("imagen-3.0-generate-001")
 
@@ -401,12 +375,12 @@ class Imagen(Engine):
         task = await self.client.retrieve_async_task(session_id, id)
         return await self._result_to_details(task, task_id=id, session_id=session_id)
 
-    async def _request(self, prompt, **kwargs) -> ImagenDetails:
+    async def _request(self, **kwargs) -> ImagenDetails:
         result = self.imagen.generate_images(
-            prompt=prompt,
+            prompt=self.item.prompt,
             number_of_images=1,
             person_generation="allow_adult",
-            aspect_ratio=self.imagination.aspect_ratio,
+            aspect_ratio=self.item.aspect_ratio,
             # safety_filter_level="block_only_high",
             # negative_prompt="Outside",
         )
@@ -422,7 +396,7 @@ class Imagen(Engine):
         }.get(status, ImaginationStatus.error)
 
     def validate(self, data: ImagineCreateSchema):
-        aspect_ratio_valid = data.mode == "imagine" and data.aspect_ratio in {
+        aspect_ratio_valid = data.aspect_ratio in {
             "1:1",
             "3:4",
             "4:3",
@@ -430,13 +404,9 @@ class Imagen(Engine):
             "16:9",
         }
         message = (
-            "Mode must be 'imagine'."
-            if data.mode != "imagine"
-            else (
-                "aspect_ratio must be one of them 1:1, 3:4, 4:3, 9:16 and 16:9"
-                if not aspect_ratio_valid
-                else None
-            )
+            "aspect_ratio must be one of them 1:1, 3:4, 4:3, 9:16 and 16:9"
+            if not aspect_ratio_valid
+            else None
         )
         return aspect_ratio_valid, message
 
@@ -451,7 +421,7 @@ class Imagen(Engine):
             id=task_id,
             session_id=session_id,
             status=status,
-            prompt=self.imagination.prompt,
+            prompt=self.item.prompt,
             result=(
                 {"uri": task.message.attachments[0].content} if task.message else None
             ),

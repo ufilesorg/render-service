@@ -80,8 +80,8 @@ class EnginesDetails(BaseModel):
 
 
 class Engine:
-    def __init__(self, imagination) -> None:
-        self.imagination = imagination
+    def __init__(self, item) -> None:
+        self.item = item
 
     # Get Result from service(client / API)
     async def result(self, **kwargs):
@@ -92,13 +92,13 @@ class Engine:
         pass
 
     # Send request to service(client / API)
-    async def _request(self, prompt: str, command, **kwargs) -> EnginesDetails:
+    async def _request(self, **kwargs) -> EnginesDetails:
         pass
 
-    # Get property from imagination meta_data
-    # imagination.meta_data: It is a response sent from the service
+    # Get property from item meta_data
+    # item.meta_data: It is a response sent from the service
     def _get_data(self, name: str, **kwargs):
-        value = (self.imagination.meta_data or {}).get(name, None)
+        value = (self.item.meta_data or {}).get(name, None)
         if value is None:
             raise ValueError(f"Missing value {name}")
         return value
@@ -107,9 +107,8 @@ class Engine:
     def _status(self, status: str) -> ImaginationStatus:
         pass
 
-    async def imagine(self, prompt: str, **kwargs):
-        prompt = " ".join([im for im in kwargs.get("images", [])] + [prompt])
-        response = await self._request(prompt=prompt, **kwargs)
+    async def imagine(self, **kwargs):
+        response = await self._request(**kwargs)
         return response
 
     # Convert service response to EnginesDetails

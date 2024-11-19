@@ -1,18 +1,35 @@
 import replicate
 
 from .ai import Replicate, ReplicateDetails
-from apps.imagination.schemas import ImagineCreateSchema
+from replicate.identifier import ModelVersionIdentifier
 
 
 class ReplicateBackgroundRemoval(Replicate):
-    def __init__(self, imagination, name) -> None:
-        super().__init__(imagination, name)
+    def __init__(self, item, name) -> None:
+        self.item = item
+        self.application_name = {
+            "cjwbw": ModelVersionIdentifier(
+                "cjwbw",
+                "rembg",
+                "fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003",
+            ),
+            "lucataco": ModelVersionIdentifier(
+                "lucataco",
+                "remove",
+                "bg:95fcc2a26d3899cd6c2691c900465aaeff466285a65c14638cc5f36f34befaf1",
+            ),
+            "pollinations": ModelVersionIdentifier(
+                "pollinations",
+                "modnet",
+                "da7d45f3b836795f945f221fc0b01a6d3ab7f5e163f13208948ad436001e2255",
+            ),
+        }[name]
 
     async def _request(self, **kwargs) -> ReplicateDetails:
         prediction = replicate.predictions.create(
             version=self.application_name.version,
-            input={"image": self.imagination.image},
-            webhook=self.imagination.webhook_url,
+            input={"image": self.item.image},
+            webhook=self.item.webhook_url,
             webhook_events_filter=["completed"],
         )
         return await self._result_to_details(prediction)
@@ -29,12 +46,3 @@ class ReplicateBackgroundRemoval(Replicate):
             result=({"uri": prediction.output} if prediction.output else None),
             percentage=100,
         )
-
-    def validate(self, data: ImagineCreateSchema):
-        imagination_valid = data.mode == "background-removal" and data.image is not None
-        message = (
-            "Mode must be 'background-removal'."
-            if data.mode != "background-removal"
-            else ("Imagination Image is required." if data.image is None else None)
-        )
-        return imagination_valid, message

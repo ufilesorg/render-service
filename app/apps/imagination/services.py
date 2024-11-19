@@ -8,7 +8,6 @@ import aiohttp
 from apps.imagination.models import Imagination
 from apps.imagination.schemas import (
     ImaginationEngines,
-    ImaginationStatus,
     ImagineResponse,
     ImagineWebhookData,
 )
@@ -202,6 +201,8 @@ async def create_prompt(imagination: Imagination, enhance: bool = False):
 
 @try_except_wrapper
 async def imagine_request(imagination: Imagination):
+    if imagination.mode != "imagine":
+        return
     # Get Engine class and validate it
     Item = imagination.engine.get_class(imagination)
     if Item is None:
@@ -209,11 +210,11 @@ async def imagine_request(imagination: Imagination):
             "The supported engines are Midjourney, Replicate and Dalle."
         )
 
-    prompt = await create_prompt(imagination) if imagination.mode == "imagine" else ""
-    imagination.prompt = prompt
+    # Create prompt using context attributes (ratio, style ...)
+    imagination.prompt = await create_prompt(imagination)
 
     # Request to client or api using Engine classes
-    mid_request = await Item.imagine(prompt, callback=imagination.webhook_url)
+    mid_request = await Item.imagine(callback=imagination.webhook_url)
 
     # Store Engine response
     imagination.meta_data = (imagination.meta_data or {}) | mid_request.model_dump()
