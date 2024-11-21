@@ -22,9 +22,10 @@ class Settings(metaclass=Singleton):
     base_dir: Path = Path(__file__).resolve().parent.parent
     base_path: str = "/v1/apps/imagine"
     page_max_limit: int = 100
-    update_time: int = 60
+    update_time: int = 10
 
     app_id: str = os.getenv("APP_ID")
+    imagen_apikey: str = os.getenv("GOOGLE_IMAGEN_APIKEY")
     app_secret: str = os.getenv("APP_SECRET")
 
     JWT_CONFIG: str = os.getenv(

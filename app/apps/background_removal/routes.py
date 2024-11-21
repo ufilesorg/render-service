@@ -1,64 +1,64 @@
 import uuid
-
 import fastapi
+
 from fastapi import BackgroundTasks
 from fastapi_mongo_base.routes import AbstractBaseRouter
-from metisai.async_metis import AsyncMetisBot
-from server.config import Settings
 from usso.fastapi import jwt_access_security
 
-from .models import Imagination
+from apps.imagination.schemas import ImaginationEnginesSchema
+from .services import process_background_removal_webhook
+from .models import BackgroundRemoval
 from .schemas import (
-    ImaginationEngines,
-    ImaginationEnginesSchema,
-    ImagineCreateSchema,
-    ImagineSchema,
-    ImagineWebhookData,
+    BackgroundRemovalEngines,
+    BackgroundRemovalCreateSchema,
+    BackgroundRemovalSchema,
+    BackgroundRemovalWebhookData,
 )
-from .services import process_imagine_webhook
 
 
-class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
+class BackgroundRemovalRouter(
+    AbstractBaseRouter[BackgroundRemoval, BackgroundRemovalSchema]
+):
     def __init__(self):
         super().__init__(
-            model=Imagination,
-            schema=ImagineSchema,
+            model=BackgroundRemoval,
+            schema=BackgroundRemovalSchema,
             user_dependency=jwt_access_security,
-            tags=["Imagination"],
-            prefix="",
+            tags=["BackgroundRemoval"],
+            prefix="/background-removal",
         )
 
     def config_routes(self, **kwargs):
         self.router.add_api_route(
-            "/imagination",
+            "",
             self.list_items,
             methods=["GET"],
             response_model=self.list_response_schema,
             status_code=200,
         )
         self.router.add_api_route(
-            "/imagination/",
+            "/",
             self.create_item,
             methods=["POST"],
             response_model=self.create_response_schema,
             status_code=201,
         )
         self.router.add_api_route(
-            "/imagination/{uid:uuid}",
+            "/{uid:uuid}",
             self.retrieve_item,
             methods=["GET"],
             response_model=self.retrieve_response_schema,
             status_code=200,
         )
         self.router.add_api_route(
-            "/imagination/{uid:uuid}",
+            "/{uid:uuid}",
             self.delete_item,
             methods=["DELETE"],
             # status_code=204,
             response_model=self.delete_response_schema,
         )
         self.router.add_api_route(
-            "/imagination/{uid:uuid}/webhook",
+            "/{uid:uuid}/webhook",
             self.webhook,
             methods=["POST"],
             status_code=200,
@@ -67,30 +67,33 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
     async def create_item(
         self,
         request: fastapi.Request,
-        data: ImagineCreateSchema,
+        data: BackgroundRemovalCreateSchema,
         background_tasks: BackgroundTasks,
     ):
-        item: Imagination = await super().create_item(request, data.model_dump())
+        item: BackgroundRemoval = await super().create_item(request, data.model_dump())
         background_tasks.add_task(item.start_processing)
         return item
 
     async def webhook(
-        self, request: fastapi.Request, uid: uuid.UUID, data: ImagineWebhookData
+        self,
+        request: fastapi.Request,
+        uid: uuid.UUID,
+        data: BackgroundRemovalWebhookData,
     ):
-        # logging.info(f"Webhook received: {await request.json()}")
-        item: Imagination = await self.get_item(uid, user_id=None)
+        item: BackgroundRemoval = await self.get_item(uid, user_id=None)
         if item.status == "cancelled":
-            return {"message": "Imagination has been cancelled."}
-        await process_imagine_webhook(item, data)
+            return {"message": "BackgroundRemoval has been cancelled."}
+        await process_background_removal_webhook(item, data)
         return {}
 
 
-router = ImaginationRouter().router
+router = BackgroundRemovalRouter().router
 
 
-@router.get("/engines")
+@router.get("/background-removal/engines")
 async def engines():
     engines = [
-        ImaginationEnginesSchema.from_model(engine) for engine in ImaginationEngines
+        ImaginationEnginesSchema.from_model(engine)
+        for engine in BackgroundRemovalEngines
     ]
     return engines
