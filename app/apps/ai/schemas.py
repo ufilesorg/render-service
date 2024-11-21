@@ -61,18 +61,18 @@ class ImaginationEngines(str, Enum):
     flux_schnell = "flux_schnell"
     stability = "stability"
     flux_1_1 = "flux_1.1"
-    flux = "flux"
+    # flux = "flux"
     dalle = "dalle"
-    leonardo = "leonardo"
+    # leonardo = "leonardo"
     imagen = "imagen"
 
     @property
     def metis_bot_id(self):
         return {
-            ImaginationEngines.midjourney: "1fff8298-4f56-4912-89b4-3529106c5a0a",
-            ImaginationEngines.flux: "68ec6038-6701-4f9b-a3f5-0c674b106f0e",
+            # ImaginationEngines.midjourney: "1fff8298-4f56-4912-89b4-3529106c5a0a",
+            # ImaginationEngines.flux: "68ec6038-6701-4f9b-a3f5-0c674b106f0e",
             ImaginationEngines.dalle: "59631f67-3199-4e47-af7f-18eb44f69ea2",
-            ImaginationEngines.leonardo: "4b69d78d-e454-4f4b-93ed-427b46368977",
+            # ImaginationEngines.leonardo: "4b69d78d-e454-4f4b-93ed-427b46368977",
         }[self]
 
     def get_class(self, imagination: Any):
@@ -93,7 +93,15 @@ class ImaginationEngines(str, Enum):
 
     @property
     def thumbnail_url(self):
-        return "https://cdn.metisai.com/images/engines/{}.png".format(self.value)
+        return {
+            ImaginationEngines.dalle: "",
+            ImaginationEngines.midjourney: "",
+            ImaginationEngines.ideogram: "",
+            ImaginationEngines.flux_schnell: "",
+            ImaginationEngines.stability: "",
+            ImaginationEngines.flux_1_1: "",
+            ImaginationEngines.imagen: "",
+        }[self]
 
     @property
     def price(self):
