@@ -1,7 +1,7 @@
 import replicate
+from replicate.identifier import ModelVersionIdentifier
 
 from .ai import Replicate, ReplicateDetails
-from replicate.identifier import ModelVersionIdentifier
 
 
 class ReplicateBackgroundRemoval(Replicate):

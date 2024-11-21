@@ -2,10 +2,10 @@ import asyncio
 import logging
 
 from fastapi_mongo_base.models import OwnedEntity
-from pydantic import BaseModel, field_validator
+
 from server.config import Settings
 
-from .schemas import ImagineSchema, ImaginationStatus, ImagineCreateSchema
+from .schemas import ImagineSchema
 
 
 class Imagination(ImagineSchema, OwnedEntity):
@@ -14,8 +14,9 @@ class Imagination(ImagineSchema, OwnedEntity):
 
     @property
     def item_url(self):
+        super().item_url
         # TODO: Change to use the business url
-        return f"https://{Settings.root_url}/v1/apps/imagine/imagination/{self.uid}"
+        return f"https://{Settings.root_url}{Settings.base_path}/imagination/{self.uid}"
 
     @property
     def webhook_url(self):
@@ -56,61 +57,3 @@ class Imagination(ImagineSchema, OwnedEntity):
         return await super(OwnedEntity, cls).get_item(
             uid, user_id=user_id, *args, **kwargs
         )
-
-
-# Required data
-class EnginesDetails(BaseModel):
-    id: str
-    prompt: str
-    status: ImaginationStatus
-    percentage: int | None = None
-    result: dict | None = None
-
-    @field_validator("percentage", mode="before")
-    def validate_percentage(cls, value):
-        if value is None:
-            return -1
-        if isinstance(value, str):
-            return int(value.replace("%", ""))
-        if value < -1:
-            return -1
-        if value > 100:
-            return 100
-        return value
-
-
-class Engine:
-    def __init__(self, item) -> None:
-        self.item = item
-
-    # Get Result from service(client / API)
-    async def result(self, **kwargs):
-        pass
-
-    # Validate schema
-    async def validate(self, data: ImagineCreateSchema) -> tuple[bool, str | None]:
-        pass
-
-    # Send request to service(client / API)
-    async def _request(self, **kwargs) -> EnginesDetails:
-        pass
-
-    # Get property from item meta_data
-    # item.meta_data: It is a response sent from the service
-    def _get_data(self, name: str, **kwargs):
-        value = (self.item.meta_data or {}).get(name, None)
-        if value is None:
-            raise ValueError(f"Missing value {name}")
-        return value
-
-    # Get current request service(Convert service status to ImaginationStatus)
-    def _status(self, status: str) -> ImaginationStatus:
-        pass
-
-    async def imagine(self, **kwargs):
-        response = await self._request(**kwargs)
-        return response
-
-    # Convert service response to EnginesDetails
-    async def _result_to_details(self, res) -> EnginesDetails:
-        pass

@@ -5,17 +5,18 @@ import re
 import uuid
 
 import aiohttp
+from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
+from metisai.async_metis import AsyncMetisBot
+from PIL import Image
+from usso.async_session import AsyncUssoSession
+
 from apps.imagination.models import Imagination
 from apps.imagination.schemas import (
     ImaginationEngines,
     ImagineResponse,
     ImagineWebhookData,
 )
-from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
-from metisai.async_metis import AsyncMetisBot
-from PIL import Image
 from server.config import Settings
-from usso.async_session import AsyncUssoSession
 from utils import ai, aionetwork, imagetools, ufiles
 
 
@@ -204,8 +205,8 @@ async def imagine_request(imagination: Imagination):
     if imagination.mode != "imagine":
         return
     # Get Engine class and validate it
-    Item = imagination.engine.get_class(imagination)
-    if Item is None:
+    imagine_engine = imagination.engine.get_class(imagination)
+    if imagine_engine is None:
         raise NotImplementedError(
             "The supported engines are Midjourney, Replicate and Dalle."
         )
@@ -214,7 +215,7 @@ async def imagine_request(imagination: Imagination):
     imagination.prompt = await create_prompt(imagination)
 
     # Request to client or api using Engine classes
-    mid_request = await Item.imagine(callback=imagination.webhook_url)
+    mid_request = await imagine_engine.imagine(callback=imagination.webhook_url)
 
     # Store Engine response
     imagination.meta_data = (imagination.meta_data or {}) | mid_request.model_dump()
@@ -232,11 +233,11 @@ async def imagine_update(imagination: Imagination, i=0):
     if imagination.status.is_done:
         return
 
-    Item = imagination.engine.get_class(imagination)
+    imagine_engine = imagination.engine.get_class(imagination)
 
     # Get Result from service by engine class
     # And Update imagination status
-    result = await Item.result()
+    result = await imagine_engine.result()
     imagination.status = result.status
 
     # Process Result

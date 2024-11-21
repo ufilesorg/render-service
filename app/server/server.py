@@ -4,11 +4,12 @@ from contextlib import asynccontextmanager
 
 import fastapi
 import pydantic
-from core import exceptions
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from json_advanced import dumps
 from usso.exceptions import USSOException
+
+from core import exceptions
 
 from . import config, db, middlewares
 
@@ -119,8 +120,8 @@ app.add_middleware(
 
 app.add_middleware(middlewares.OriginalHostMiddleware)
 
-from apps.imagination.routes import router as imagination_router
 from apps.background_removal.routes import router as background_removal_router
+from apps.imagination.routes import router as imagination_router
 
 app.include_router(imagination_router, prefix=f"{config.Settings.base_path}")
 

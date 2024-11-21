@@ -22,3 +22,4 @@ langdetect
 pillow
 apscheduler
 google-generativeai
+replicate

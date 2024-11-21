@@ -1,19 +1,20 @@
 import uuid
-import fastapi
 
+import fastapi
 from fastapi import BackgroundTasks
 from fastapi_mongo_base.routes import AbstractBaseRouter
 from usso.fastapi import jwt_access_security
 
-from apps.imagination.schemas import ImaginationEnginesSchema
-from .services import process_background_removal_webhook
+from apps.ai.schemas import ImaginationEnginesSchema
+
 from .models import BackgroundRemoval
 from .schemas import (
-    BackgroundRemovalEngines,
     BackgroundRemovalCreateSchema,
+    BackgroundRemovalEngines,
     BackgroundRemovalSchema,
     BackgroundRemovalWebhookData,
 )
+from .services import process_background_removal_webhook
 
 
 class BackgroundRemovalRouter(

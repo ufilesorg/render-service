@@ -3,18 +3,12 @@ import uuid
 import fastapi
 from fastapi import BackgroundTasks
 from fastapi_mongo_base.routes import AbstractBaseRouter
-from metisai.async_metis import AsyncMetisBot
-from server.config import Settings
 from usso.fastapi import jwt_access_security
 
+from apps.ai.schemas import ImaginationEngines, ImaginationEnginesSchema
+
 from .models import Imagination
-from .schemas import (
-    ImaginationEngines,
-    ImaginationEnginesSchema,
-    ImagineCreateSchema,
-    ImagineSchema,
-    ImagineWebhookData,
-)
+from .schemas import ImagineCreateSchema, ImagineSchema, ImagineWebhookData
 from .services import process_imagine_webhook
 
 

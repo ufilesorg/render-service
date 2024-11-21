@@ -1,21 +1,19 @@
-import json
-import uuid
 import asyncio
-import aiohttp
+import json
 import logging
+import uuid
 
+import aiohttp
 from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
 from PIL import Image
 from usso.async_session import AsyncUssoSession
 
 from apps.imagination.schemas import ImagineResponse
-from utils import aionetwork, imagetools, ufiles
 from server.config import Settings
+from utils import aionetwork, imagetools, ufiles
+
 from .models import BackgroundRemoval
-from .schemas import (
-    BackgroundRemovalEngines,
-    BackgroundRemovalWebhookData,
-)
+from .schemas import BackgroundRemovalEngines, BackgroundRemovalWebhookData
 
 
 async def upload_image(
