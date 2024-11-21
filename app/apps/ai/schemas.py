@@ -79,7 +79,7 @@ class ImaginationEngines(str, Enum):
         from .dalle import Dalle
         from .imagen import Imagen
         from .midjourney import Midjourney
-        from .replicate import Replicate
+        from .replicate_engine import Replicate
 
         return {
             ImaginationEngines.dalle: lambda: Dalle(imagination),

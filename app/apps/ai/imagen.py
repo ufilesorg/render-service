@@ -4,10 +4,10 @@ import google.generativeai as genai
 import google.generativeai.vision_models as genaiaa
 from metisai.metistypes import TaskResult
 
-from apps.imagination.schemas import ImaginationStatus, ImagineCreateSchema
 from server.config import Settings
 
 from .engine import Engine, EnginesDetails
+from .schemas import ImaginationStatus
 
 
 class ImagenDetails(EnginesDetails):
@@ -47,7 +47,7 @@ class Imagen(Engine):
             "FAILED": ImaginationStatus.error,
         }.get(status, ImaginationStatus.error)
 
-    def validate(self, data: ImagineCreateSchema):
+    def validate(self, data):
         aspect_ratio_valid = data.aspect_ratio in {
             "1:1",
             "3:4",

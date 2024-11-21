@@ -7,9 +7,8 @@ import aiohttp
 import singleton
 from pydantic import BaseModel
 
-from apps.imagination.schemas import ImaginationStatus
-
 from .engine import Engine, EnginesDetails
+from .schemas import ImaginationStatus
 
 
 class MidjourneyDetails(EnginesDetails, BaseModel):

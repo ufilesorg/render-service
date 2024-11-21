@@ -3,14 +3,10 @@ from typing import Literal
 from metisai.async_metis import AsyncMetisBot
 from metisai.metistypes import TaskResult
 
-from apps.imagination.schemas import (
-    ImaginationEngines,
-    ImaginationStatus,
-    ImagineCreateSchema,
-)
 from server.config import Settings
 
 from .engine import Engine, EnginesDetails
+from .schemas import ImaginationEngines, ImaginationStatus
 
 
 class DalleDetails(EnginesDetails):
@@ -50,7 +46,7 @@ class Dalle(Engine):
             "FAILED": ImaginationStatus.error,
         }.get(status, ImaginationStatus.error)
 
-    def validate(self, data: ImagineCreateSchema):
+    def validate(self, data):
         aspect_ratio_valid = data.aspect_ratio in {
             "16:9",
             "9:16",
