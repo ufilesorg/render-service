@@ -3,6 +3,7 @@ from typing import Any
 
 from fastapi_mongo_base.tasks import TaskStatusEnum
 from pydantic import BaseModel
+from server.config import Settings
 
 
 class ImaginationStatus(str, Enum):
@@ -71,7 +72,7 @@ class ImaginationEngines(str, Enum):
         return {
             # ImaginationEngines.midjourney: "1fff8298-4f56-4912-89b4-3529106c5a0a",
             # ImaginationEngines.flux: "68ec6038-6701-4f9b-a3f5-0c674b106f0e",
-            ImaginationEngines.dalle: "59631f67-3199-4e47-af7f-18eb44f69ea2",
+            ImaginationEngines.dalle: Settings.METIS_DALLE_BOT_ID,
             # ImaginationEngines.leonardo: "4b69d78d-e454-4f4b-93ed-427b46368977",
         }[self]
 
