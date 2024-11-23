@@ -8,7 +8,7 @@ from metisai.async_metis import AsyncMetisBot
 from utils.texttools import backtick_formatter
 
 metis_client = AsyncMetisBot(
-    api_key=os.getenv("METIS_API_KEY"), bot_id=os.getenv("METIS_BOT_ID")
+    api_key=os.getenv("METIS_API_KEY"), bot_id="a7a3c055-fd9c-4162-ab02-d5d3053c7b6f"
 )
 
 
