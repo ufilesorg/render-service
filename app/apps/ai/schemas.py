@@ -64,7 +64,6 @@ class ImaginationEngines(str, Enum):
     # flux = "flux"
     dalle = "dalle"
     # leonardo = "leonardo"
-    imagen = "imagen"
 
     @property
     def metis_bot_id(self):
@@ -77,7 +76,7 @@ class ImaginationEngines(str, Enum):
 
     def get_class(self, imagination: Any):
         from .dalle import Dalle
-        from .imagen import Imagen
+
         from .midjourney import Midjourney
         from .replicate_engine import Replicate
 
@@ -88,7 +87,6 @@ class ImaginationEngines(str, Enum):
             ImaginationEngines.flux_schnell: lambda: Replicate(imagination, self.value),
             ImaginationEngines.stability: lambda: Replicate(imagination, self.value),
             ImaginationEngines.flux_1_1: lambda: Replicate(imagination, self.value),
-            ImaginationEngines.imagen: lambda: Imagen(imagination),
         }[self]()
 
     @property
@@ -100,7 +98,6 @@ class ImaginationEngines(str, Enum):
             ImaginationEngines.flux_schnell: "",
             ImaginationEngines.stability: "",
             ImaginationEngines.flux_1_1: "",
-            ImaginationEngines.imagen: "",
         }[self]
 
     @property
