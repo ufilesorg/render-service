@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Any, Literal
 
 import aiohttp
-import singleton
 from pydantic import BaseModel
 
 from .engine import Engine, EnginesDetails
@@ -31,7 +30,7 @@ class MidjourneyDetails(EnginesDetails, BaseModel):
     sender_data: dict | None = None
 
 
-class Midjourney(Engine, metaclass=singleton.Singleton):
+class Midjourney(Engine):
     def __init__(self, item) -> None:
         super().__init__(item)
         self.api_url = "https://mid.aision.io/task"

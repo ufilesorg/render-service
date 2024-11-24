@@ -33,8 +33,8 @@ class Engine:
         pass
 
     # Validate schema
-    async def validate(self, data: BaseModel) -> tuple[bool, str | None]:
-        pass
+    def validate(self, data: BaseModel) -> tuple[bool, str | None]:
+        return True, None
 
     # Send request to service(client / API)
     async def _request(self, **kwargs) -> EnginesDetails:
