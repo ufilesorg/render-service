@@ -4,12 +4,11 @@ from contextlib import asynccontextmanager
 
 import fastapi
 import pydantic
+from core import exceptions
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from json_advanced import dumps
 from usso.exceptions import USSOException
-
-from core import exceptions
 
 from . import config, db, middlewares
 
@@ -144,6 +143,7 @@ async def health(request: fastapi.Request):
         "forwarded_proto": forwarded_proto,
         "forwarded_for": forwarded_for,
     }
+
 
 @app.get(f"{config.Settings.base_path}/logs", include_in_schema=False)
 async def logs():

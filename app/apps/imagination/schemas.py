@@ -1,10 +1,9 @@
 from typing import Any, Literal
 
+from apps.ai.schemas import ImaginationEngines, ImaginationStatus
 from fastapi_mongo_base.schemas import OwnedEntitySchema
 from fastapi_mongo_base.tasks import TaskMixin
 from pydantic import BaseModel, field_validator, model_validator
-
-from apps.ai.schemas import ImaginationEngines, ImaginationStatus
 
 
 class ImagineCreateSchema(BaseModel):

@@ -2,7 +2,6 @@ from typing import Literal
 
 from metisai.async_metis import AsyncMetisBot
 from metisai.metistypes import TaskResult
-
 from server.config import Settings
 
 from .engine import Engine, EnginesDetails

@@ -4,7 +4,6 @@ import os
 
 import langdetect
 from metisai.async_metis import AsyncMetisBot
-
 from utils.texttools import backtick_formatter
 
 metis_client = AsyncMetisBot(

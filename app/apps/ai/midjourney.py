@@ -90,5 +90,5 @@ class Midjourney(Engine):
             **result,
             id=result.get("uuid"),
             status=status,
-            result={"uri": result["uri"]} if result["uri"] else None,
+            result={"uri": result.get("uri")},
         )
