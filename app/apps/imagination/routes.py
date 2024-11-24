@@ -1,10 +1,11 @@
 import uuid
 
 import fastapi
-from apps.ai.schemas import ImaginationEngines, ImaginationEnginesSchema
 from fastapi import BackgroundTasks
 from fastapi_mongo_base.routes import AbstractBaseRouter
 from usso.fastapi import jwt_access_security
+
+from apps.ai.schemas import ImaginationEngines, ImaginationEnginesSchema
 
 from .models import Imagination
 from .schemas import ImagineCreateSchema, ImagineSchema, ImagineWebhookData
