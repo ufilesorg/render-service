@@ -5,12 +5,11 @@ from fastapi import BackgroundTasks
 from fastapi_mongo_base.routes import AbstractBaseRouter
 from usso.fastapi import jwt_access_security
 
-from apps.ai.schemas import ImaginationEnginesSchema
-
 from .models import BackgroundRemoval
 from .schemas import (
     BackgroundRemovalCreateSchema,
     BackgroundRemovalEngines,
+    BackgroundRemovalEnginesSchema,
     BackgroundRemovalSchema,
     BackgroundRemovalWebhookData,
 )
@@ -91,10 +90,10 @@ class BackgroundRemovalRouter(
 router = BackgroundRemovalRouter().router
 
 
-@router.get("/background-removal/engines")
+@router.get("/engines")
 async def engines():
     engines = [
-        ImaginationEnginesSchema.from_model(engine)
+        BackgroundRemovalEnginesSchema.from_model(engine)
         for engine in BackgroundRemovalEngines
     ]
     return engines
