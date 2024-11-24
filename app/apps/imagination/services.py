@@ -219,6 +219,8 @@ async def imagine_request(imagination: Imagination):
 
     # Store Engine response
     imagination.meta_data = (imagination.meta_data or {}) | mid_request.model_dump()
+    imagination.status = mid_request.status
+    imagination.task_status = mid_request.status.task_status
     await imagination.save_report(f"Midjourney has been requested.")
 
     # Create Short Polling process know the status of the request
