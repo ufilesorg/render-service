@@ -144,3 +144,9 @@ async def health(request: fastapi.Request):
         "forwarded_proto": forwarded_proto,
         "forwarded_for": forwarded_for,
     }
+
+@app.get(f"{config.Settings.base_path}/logs", include_in_schema=False)
+async def logs():
+    with open("logs/info.log") as f:
+        logs = f.readlines()
+    return logs[-100:]
