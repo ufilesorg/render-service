@@ -3,6 +3,7 @@ from typing import Any
 
 from fastapi_mongo_base.tasks import TaskStatusEnum
 from pydantic import BaseModel
+
 from server.config import Settings
 
 
@@ -81,12 +82,22 @@ class ImaginationEngines(str, Enum):
         from .replicate_engine import Replicate
 
         return {
-            ImaginationEngines.dalle: lambda: Dalle(imagination),
-            ImaginationEngines.midjourney: lambda: Midjourney(imagination),
-            ImaginationEngines.ideogram: lambda: Replicate(imagination, self.value),
-            ImaginationEngines.flux_schnell: lambda: Replicate(imagination, self.value),
-            ImaginationEngines.stability: lambda: Replicate(imagination, self.value),
-            ImaginationEngines.flux_1_1: lambda: Replicate(imagination, self.value),
+            ImaginationEngines.dalle: lambda: Dalle(item=imagination, engine=self),
+            ImaginationEngines.midjourney: lambda: Midjourney(
+                item=imagination, engine=self
+            ),
+            ImaginationEngines.ideogram: lambda: Replicate(
+                item=imagination, engine=self
+            ),
+            ImaginationEngines.flux_schnell: lambda: Replicate(
+                item=imagination, engine=self
+            ),
+            ImaginationEngines.stability: lambda: Replicate(
+                item=imagination, engine=self
+            ),
+            ImaginationEngines.flux_1_1: lambda: Replicate(
+                item=imagination, engine=self
+            ),
         }[self]()
 
     @property
@@ -101,6 +112,69 @@ class ImaginationEngines(str, Enum):
         }[self]
 
     @property
+    def supported_aspect_ratios(self):
+        return {
+            ImaginationEngines.ideogram: {
+                "1:1",
+                "16:9",
+                "9:16",
+                "4:3",
+                "3:4",
+                "3:2",
+                "2:3",
+                "16:10",
+                "10:16",
+                "3:1",
+                "1:3",
+            },
+            ImaginationEngines.flux_schnell: {
+                "1:1",
+                "16:9",
+                "21:9",
+                "3:2",
+                "2:3",
+                "4:5",
+                "5:4",
+                "3:4",
+                "4:3",
+                "9:16",
+                "9:21",
+            },
+            ImaginationEngines.flux_1_1: {
+                "1:1",
+                "16:9",
+                "2:3",
+                "3:2",
+                "4:5",
+                "5:4",
+                "9:16",
+                "3:4",
+                "4:3",
+            },
+            ImaginationEngines.stability: {
+                "1:1",
+                "16:9",
+                "21:9",
+                "3:2",
+                "2:3",
+                "4:5",
+                "5:4",
+                "9:16",
+                "9:21",
+            },
+            ImaginationEngines.dalle: {"1:1"},
+            ImaginationEngines.midjourney: {
+                "4:5",
+                "2:3",
+                "4:7",
+                "1:1",
+                "5:4",
+                "3:2",
+                "7:4",
+            },
+        }[self]
+
+    @property
     def price(self):
         return 0.1
 
@@ -109,7 +183,13 @@ class ImaginationEnginesSchema(BaseModel):
     engine: ImaginationEngines = ImaginationEngines.midjourney
     thumbnail_url: str
     price: float
+    supported_aspect_ratios: set
 
     @classmethod
     def from_model(cls, model: ImaginationEngines):
-        return cls(engine=model, thumbnail_url=model.thumbnail_url, price=model.price)
+        return cls(
+            engine=model,
+            thumbnail_url=model.thumbnail_url,
+            price=model.price,
+            supported_aspect_ratios=model.supported_aspect_ratios,
+        )
