@@ -51,7 +51,8 @@ class Midjourney(Engine):
                 return await self._result_to_details(result)
 
     async def _request(self, **kwargs) -> MidjourneyDetails:
-        self.item.prompt += f"--ar {self.item.aspect_ratio}"
+        self.item.prompt = self.item.prompt.strip(".").strip(",").strip()
+        self.item.prompt += f" --ar {self.item.aspect_ratio}"
         payload = json.dumps(
             {
                 "prompt": self.item.prompt,
