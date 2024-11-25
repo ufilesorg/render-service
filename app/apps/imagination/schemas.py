@@ -1,9 +1,10 @@
 from typing import Any, Literal
 
-from apps.ai.schemas import ImaginationEngines, ImaginationStatus
 from fastapi_mongo_base.schemas import OwnedEntitySchema
 from fastapi_mongo_base.tasks import TaskMixin
 from pydantic import BaseModel, field_validator, model_validator
+
+from apps.ai.schemas import ImaginationEngines, ImaginationStatus
 
 
 class ImagineCreateSchema(BaseModel):
@@ -38,7 +39,7 @@ class ImagineSchema(TaskMixin, OwnedEntitySchema):
     context: list[dict[str, Any]] | None = None
     engine: ImaginationEngines = ImaginationEngines.midjourney
     mode: Literal["imagine"] = "imagine"
-    status: ImaginationStatus = ImaginationStatus.draft
+    status: ImaginationStatus = ImaginationStatus.init
     results: list[ImagineResponse] | None = None
 
 
