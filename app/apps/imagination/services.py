@@ -149,6 +149,7 @@ async def process_result(imagination: Imagination, generated_url: str):
 
 async def process_imagine_webhook(imagination: Imagination, data: ImagineWebhookData):
     if data.status == "error":
+        logging.info(f"Error processing image: {json.dumps(data.model_dump(), indent=2, ensure_ascii=False)}")
         await imagination.retry(data.error)
         return
 
@@ -166,6 +167,11 @@ async def process_imagine_webhook(imagination: Imagination, data: ImagineWebhook
     )
 
     await imagination.save_report(report)
+
+    if report == "midjourney completed." and imagination.task_status != "completed":
+        logging.info(
+            f"{json.dumps(imagination.model_dump(), indent=2, ensure_ascii=False)},\n{json.dumps(data.model_dump(), indent=2, ensure_ascii=False)}"
+        )
 
 
 async def request_imagine_metis(
@@ -191,7 +197,7 @@ async def create_prompt(imagination: Imagination, enhance: bool = False):
 
     # Create final prompt using user prompt and prompt properties
     prompt += ", " + ", ".join(context)
-    prompt = prompt.strip(",").strip()
+    prompt = prompt.strip(",").strip(".").strip()
 
     if enhance:
         # TODO: Enhance the prompt
