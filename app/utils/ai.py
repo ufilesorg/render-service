@@ -1,13 +1,13 @@
 import json
 import logging
-import os
 
 import langdetect
 from metisai.async_metis import AsyncMetisBot
+from server.config import Settings
 from utils.texttools import backtick_formatter
 
 metis_client = AsyncMetisBot(
-    api_key=os.getenv("METIS_API_KEY"), bot_id="f43068ef-377d-40c0-bc22-9478ddb68a96"
+    api_key=Settings.METIS_API_KEY, bot_id=Settings.METIS_BOT_ID
 )
 
 

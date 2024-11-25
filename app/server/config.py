@@ -32,6 +32,8 @@ class Settings(metaclass=Singleton):
         default='{"jwk_url": "https://usso.io/website/jwks.json","type": "RS256","header": {"type": "Cookie", "name": "usso_access_token"} }',
     )
 
+    METIS_DALLE_BOT_ID: str = os.getenv("METIS_DALLE_BOT_ID")
+    METIS_BOT_ID: str = os.getenv("METIS_BOT_ID")
     METIS_API_KEY: str = os.getenv("METIS_API_KEY")
 
     testing: bool = os.getenv("TESTING", default=False)
