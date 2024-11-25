@@ -148,8 +148,12 @@ async def process_result(imagination: Imagination, generated_url: str):
 
 
 async def process_imagine_webhook(imagination: Imagination, data: ImagineWebhookData):
+    import json_advanced as json
+
     if data.status == "error":
-        logging.info(f"Error processing image: {json.dumps(data.model_dump(), indent=2, ensure_ascii=False)}")
+        logging.info(
+            f"Error processing image: {json.dumps(data.model_dump(), indent=2, ensure_ascii=False)}"
+        )
         await imagination.retry(data.error)
         return
 
@@ -158,7 +162,7 @@ async def process_imagine_webhook(imagination: Imagination, data: ImagineWebhook
         await process_result(imagination, result_url)
 
     imagination.task_progress = data.percentage
-    imagination.task_status = imagination.status.task_status
+    imagination.task_status = data.status.task_status
 
     report = (
         f"{imagination.engine.value} completed."
