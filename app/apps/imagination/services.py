@@ -5,17 +5,18 @@ import re
 import uuid
 
 import aiohttp
+from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
+from metisai.async_metis import AsyncMetisBot
+from PIL import Image
+from usso.async_session import AsyncUssoSession
+
 from apps.imagination.models import Imagination
 from apps.imagination.schemas import (
     ImaginationEngines,
     ImagineResponse,
     ImagineWebhookData,
 )
-from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
-from metisai.async_metis import AsyncMetisBot
-from PIL import Image
 from server.config import Settings
-from usso.async_session import AsyncUssoSession
 from utils import ai, aionetwork, imagetools, ufiles
 
 
@@ -159,9 +160,9 @@ async def process_imagine_webhook(imagination: Imagination, data: ImagineWebhook
     imagination.task_status = imagination.status.task_status
 
     report = (
-        f"Midjourney completed."
+        f"{imagination.engine.value} completed."
         if data.status == "completed"
-        else f"Midjourney update. {imagination.status}"
+        else f"{imagination.engine.value} update. {imagination.status}"
     )
 
     await imagination.save_report(report)
@@ -214,13 +215,13 @@ async def imagine_request(imagination: Imagination):
     imagination.prompt = await create_prompt(imagination)
 
     # Request to client or api using Engine classes
-    mid_request = await imagine_engine.imagine(callback=imagination.webhook_url)
+    mid_request = await imagine_engine.imagine(callback=imagination.item_webhook_url)
 
     # Store Engine response
     imagination.meta_data = (imagination.meta_data or {}) | mid_request.model_dump()
     imagination.status = mid_request.status
     imagination.task_status = mid_request.status.task_status
-    await imagination.save_report(f"Midjourney has been requested.")
+    await imagination.save_report(f"{imagination.engine.value} has been requested.")
 
     # Create Short Polling process know the status of the request
     new_task = asyncio.create_task(imagine_update(imagination))
