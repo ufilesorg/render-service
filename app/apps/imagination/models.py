@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from fastapi_mongo_base.models import OwnedEntity
+
 from server.config import Settings
 
 from .schemas import ImagineSchema
@@ -16,10 +17,6 @@ class Imagination(ImagineSchema, OwnedEntity):
         super().item_url
         # TODO: Change to use the business url
         return f"https://{Settings.root_url}{Settings.base_path}/imagination/{self.uid}"
-
-    @property
-    def webhook_url(self):
-        return f"{self.item_url}/webhook"
 
     async def start_processing(self):
         from .services import imagine_request

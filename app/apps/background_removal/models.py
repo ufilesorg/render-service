@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from fastapi_mongo_base.models import OwnedEntity
+
 from server.config import Settings
 
 from .schemas import BackgroundRemovalSchema
@@ -17,10 +18,6 @@ class BackgroundRemoval(BackgroundRemovalSchema, OwnedEntity):
         return (
             f"https://{Settings.root_url}/v1/apps/imagine/background-removal/{self.uid}"
         )
-
-    @property
-    def webhook_url(self):
-        return f"{self.item_url}/webhook"
 
     async def start_processing(self):
         from .services import background_removal_request

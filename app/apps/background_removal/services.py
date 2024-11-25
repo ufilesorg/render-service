@@ -4,11 +4,12 @@ import logging
 import uuid
 
 import aiohttp
-from apps.imagination.schemas import ImagineResponse
 from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
 from PIL import Image
-from server.config import Settings
 from usso.async_session import AsyncUssoSession
+
+from apps.imagination.schemas import ImagineResponse
+from server.config import Settings
 from utils import aionetwork, imagetools, ufiles
 
 from .models import BackgroundRemoval
@@ -99,7 +100,7 @@ async def background_removal_request(background_removal: BackgroundRemoval):
         raise NotImplementedError(
             "The supported engines are Replicate, Replicate and Dalle."
         )
-    mid_request = await Item._request(callback=background_removal.webhook_url)
+    mid_request = await Item._request(callback=background_removal.item_webhook_url)
 
     # Store Engine response
     background_removal.meta_data = (
