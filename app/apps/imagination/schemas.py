@@ -75,7 +75,7 @@ class ImagineBulkSchema(TaskMixin, OwnedEntitySchema):
 
     results: list[ImagineResponse] | None = None
 
-    def get_combinations(self) -> Generator[tuple[int, str, ImaginationEngines]]:
+    def get_combinations(self):# -> Generator[tuple[int, str, ImaginationEngines]]:
         from itertools import product
 
         for i, ar, e in product(range(self.number), self.aspect_ratios, self.engines):
