@@ -3,7 +3,6 @@ import logging
 
 import langdetect
 from metisai.async_metis import AsyncMetisBot
-
 from server.config import Settings
 from utils.texttools import backtick_formatter
 

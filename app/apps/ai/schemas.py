@@ -3,7 +3,6 @@ from typing import Any
 
 from fastapi_mongo_base.tasks import TaskStatusEnum
 from pydantic import BaseModel
-
 from server.config import Settings
 
 
@@ -66,6 +65,15 @@ class ImaginationEngines(str, Enum):
     dalle = "dalle"
     # flux = "flux"
     # leonardo = "leonardo"
+
+    @classmethod
+    def bulk_engines(cls):
+        return [
+            ImaginationEngines.midjourney,
+            ImaginationEngines.dalle,
+            ImaginationEngines.flux_schnell,
+            ImaginationEngines.ideogram,
+        ]
 
     @property
     def metis_bot_id(self):

@@ -2,10 +2,9 @@ import asyncio
 import logging
 
 from fastapi_mongo_base.models import OwnedEntity
-
 from server.config import Settings
 
-from .schemas import ImagineSchema
+from .schemas import ImagineBulkSchema, ImagineSchema
 
 
 class Imagination(ImagineSchema, OwnedEntity):
@@ -53,3 +52,12 @@ class Imagination(ImagineSchema, OwnedEntity):
         return await super(OwnedEntity, cls).get_item(
             uid, user_id=user_id, *args, **kwargs
         )
+
+
+class ImaginationBulk(ImagineBulkSchema, OwnedEntity):
+    class Settings:
+        indexes = OwnedEntity.Settings.indexes
+
+    @property
+    def item_url(self):
+        return f"https://{Settings.root_url}{Settings.base_path}/imagination/bulk/{self.uid}"

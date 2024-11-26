@@ -1,14 +1,19 @@
 import uuid
 
 import fastapi
+from apps.ai.schemas import ImaginationEngines, ImaginationEnginesSchema
 from fastapi import BackgroundTasks
 from fastapi_mongo_base.routes import AbstractBaseRouter
 from usso.fastapi import jwt_access_security
 
-from apps.ai.schemas import ImaginationEngines, ImaginationEnginesSchema
-
 from .models import Imagination
-from .schemas import ImagineCreateSchema, ImagineSchema, ImagineWebhookData
+from .schemas import (
+    ImagineBulkSchema,
+    ImagineCreateBulkSchema,
+    ImagineCreateSchema,
+    ImagineSchema,
+    ImagineWebhookData,
+)
 from .services import process_imagine_webhook
 
 
@@ -57,6 +62,13 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
             methods=["POST"],
             status_code=200,
         )
+        self.router.add_api_route(
+            "/imagination/bulk",
+            self.create_bulk_item,
+            methods=["POST"],
+            response_model=ImagineBulkSchema,
+            status_code=201,
+        )
 
     async def create_item(
         self,
@@ -68,6 +80,22 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
         item.task_status = "init"
         background_tasks.add_task(item.start_processing)
         return item
+
+    async def create_bulk_item(
+        self,
+        request: fastapi.Request,
+        data: ImagineCreateBulkSchema,
+        background_tasks: BackgroundTasks,
+    ):
+        items = []
+        for engine in ImaginationEngines.bulk_engines():
+            item: Imagination = await super().create_item(
+                request, {**data.model_dump(), "engine": engine}
+            )
+            item.task_status = "init"
+            background_tasks.add_task(item.start_processing)
+            items.append(item)
+        return items
 
     async def webhook(
         self, request: fastapi.Request, uid: uuid.UUID, data: ImagineWebhookData

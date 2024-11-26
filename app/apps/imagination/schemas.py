@@ -1,10 +1,9 @@
 from typing import Any, Literal
 
+from apps.ai.schemas import ImaginationEngines, ImaginationStatus
 from fastapi_mongo_base.schemas import OwnedEntitySchema
 from fastapi_mongo_base.tasks import TaskMixin
 from pydantic import BaseModel, field_validator, model_validator
-
-from apps.ai.schemas import ImaginationEngines, ImaginationStatus
 
 
 class ImagineCreateSchema(BaseModel):
@@ -14,7 +13,7 @@ class ImagineCreateSchema(BaseModel):
     delineation: str | None = None
     context: list[dict[str, Any]] | None = None
     enhance_prompt: bool = False
-    number: int = 1
+    # number: int = 1
 
     @model_validator(mode="after")
     def validate_data(cls, values: "ImagineCreateSchema"):
@@ -61,3 +60,26 @@ class ImagineWebhookData(BaseModel):
         if value > 100:
             return 100
         return value
+
+
+class ImagineBulkSchema(TaskMixin, OwnedEntitySchema):
+    prompt: str | None = None
+    delineation: str | None = None
+    context: list[dict[str, Any]] | None = None
+
+    aspect_ratios: list[str] = ["1:1"]
+    engines: list[ImaginationEngines] = ImaginationEngines.midjourney
+    number: int = 1
+
+    imaginations: list[ImagineSchema] | None = None
+
+    results: list[ImagineResponse] | None = None
+
+
+class ImagineCreateBulkSchema(BaseModel):
+    prompt: str | None = None
+    aspect_ratio: str | None = "1:1"
+    enhance_prompt: bool = False
+    engines: list[ImaginationEngines] = ImaginationEngines.bulk_engines()
+    number: int = 1
+    webhook_url: str | None = None
