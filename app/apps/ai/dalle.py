@@ -68,6 +68,10 @@ class Dalle(Engine):
             status=status,
             prompt=self.item.prompt,
             result=(
-                {"uri": task.message.attachments[0].content} if task.message else None
+                {"uri": task.message.attachments[0].content}
+                if task.message
+                and task.message.attachments
+                and len(task.message.attachments) > 0
+                else None
             ),
         )
