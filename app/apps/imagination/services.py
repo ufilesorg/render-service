@@ -5,7 +5,7 @@ import re
 import uuid
 
 import aiohttp
-from apps.imagination.models import Imagination
+from apps.imagination.models import Imagination, ImaginationBulk
 from apps.imagination.schemas import (
     ImaginationEngines,
     ImagineResponse,
@@ -256,3 +256,37 @@ async def imagine_update(imagination: Imagination, i=0):
         imagination, ImagineWebhookData(**result.model_dump())
     )
     return asyncio.create_task(imagine_update(imagination, i + 1))
+
+
+@try_except_wrapper
+async def imagine_bulk_request(imagination_bulk: ImaginationBulk):
+    imagination_bulk.imaginations = imagination_bulk.imaginations or []
+
+    for _, aspect_ratio, engine in imagination_bulk.get_combinations():
+        imagination = Imagination(
+            user_id=imagination_bulk.user_id,
+            prompt=imagination_bulk.prompt,
+            delineation=imagination_bulk.delineation,
+            context=imagination_bulk.context,
+            aspect_ratio=aspect_ratio,
+            engine=engine,
+            mode="imagine",
+            webhook_url=imagination_bulk.item_webhook_url,
+        )
+        imagination.aspect_ratio = aspect_ratio
+        imagination.engine = engine
+        asyncio.create_task(imagination.start_processing())
+        imagination_bulk.imaginations.append(imagination)
+
+    await imagination_bulk.save_report(f"{imagination_bulk} ordered.")
+
+    # Create Short Polling process know the status of the request
+    new_task = asyncio.create_task(imagine_bulk_update(imagination_bulk))
+    return new_task
+
+
+@try_except_wrapper
+@delay_execution(Settings.update_time)
+async def imagine_bulk_update(imagination_bulk: ImaginationBulk, i=0):
+    logging.info(f"imagination: {imagination_bulk} {i}")
+    return

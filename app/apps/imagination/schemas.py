@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Any, Literal, Generator
 
 from apps.ai.schemas import ImaginationEngines, ImaginationStatus
 from fastapi_mongo_base.schemas import OwnedEntitySchema
@@ -74,6 +74,12 @@ class ImagineBulkSchema(TaskMixin, OwnedEntitySchema):
     imaginations: list[ImagineSchema] | None = None
 
     results: list[ImagineResponse] | None = None
+
+    def get_combinations(self) -> Generator[tuple[int, str, ImaginationEngines]]:
+        from itertools import product
+
+        for i, ar, e in product(range(self.number), self.aspect_ratios, self.engines):
+            yield i, ar, e
 
 
 class ImagineCreateBulkSchema(BaseModel):
