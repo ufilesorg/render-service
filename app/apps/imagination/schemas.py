@@ -93,6 +93,12 @@ class ImagineBulkSchema(TaskMixin, OwnedEntitySchema):
         for ar, e in zip(self.aspect_ratios, self.engines):
             yield ar, e
 
+    # def get_combinations(self):# -> Generator[tuple[int, str, ImaginationEngines]]:
+    #     from itertools import product
+
+    #     for i, ar, e in product(range(self.number), self.aspect_ratios, self.engines):
+    #         yield i, ar, e
+
 
 class ImagineCreateBulkSchema(BaseModel):
     prompt: str | None = None
