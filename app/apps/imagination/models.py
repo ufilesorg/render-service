@@ -1,10 +1,18 @@
 import asyncio
 import logging
+import time
 
+from fastapi_mongo_base.tasks import TaskStatusEnum
 from fastapi_mongo_base.models import OwnedEntity
 from server.config import Settings
+from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
 
-from .schemas import ImagineBulkSchema, ImagineSchema
+from .schemas import (
+    ImagineBulkSchema,
+    ImagineSchema,
+    ImaginationStatus,
+    ImagineBulkError,
+)
 
 
 class Imagination(ImagineSchema, OwnedEntity):
@@ -22,10 +30,15 @@ class Imagination(ImagineSchema, OwnedEntity):
 
         await imagine_request(self)
 
-    async def retry(self, message: str, max_retries: int = 5):
+    async def end_processing(self):
+        if self.bulk and self.status.is_done:
+            main_task = await ImaginationBulk.get(self.bulk)
+            await main_task.end_processing(self)
+
+    async def retry(self, message: str, max_retries: int = 0):
         self.meta_data = self.meta_data or {}
         retry_count = self.meta_data.get("retry_count", 0)
-
+        print(max_retries)
         if retry_count < max_retries:
             self.meta_data["retry_count"] = retry_count + 1
             await self.save_report(
@@ -40,10 +53,14 @@ class Imagination(ImagineSchema, OwnedEntity):
         return -1
 
     async def fail(self, message: str):
-        self.task_status = "error"
-        self.status = "error"
+        self.task_status = TaskStatusEnum.error
+        self.status = ImaginationStatus.error
         await self.save_report(f"Image failed after retries, {message}", emit=False)
         await self.save_and_emit()
+        if self.bulk:
+            main_task = await ImaginationBulk.get(self.bulk)
+            print("failed")
+            await main_task.fail()
 
     @classmethod
     async def get_item(cls, uid, user_id, *args, **kwargs) -> "Imagination":
@@ -61,9 +78,34 @@ class ImaginationBulk(ImagineBulkSchema, OwnedEntity):
     @property
     def item_url(self):
         return f"https://{Settings.root_url}{Settings.base_path}/imagination/bulk/{self.uid}"
-    
-    
+
     async def start_processing(self):
         from .services import imagine_bulk_request
 
         await imagine_bulk_request(self)
+
+    @try_except_wrapper
+    async def fail(self):
+        self.total_failed += 1
+        print(f"self.total_failed:{self.total_failed}")
+        data = await Imagination.find(
+            {
+                "bulk": {"$eq": str(self.id)},
+                "status": {"$eq": ImaginationStatus.completed},
+            }
+        ).to_list()
+        print(data)
+        self.error = []
+        for item in data:
+            self.error.append(
+                ImagineBulkError(task=str(item.id), message=item.error or "")
+            )
+        await self.save()
+        from .services import imagine_bulk_process
+
+        await imagine_bulk_process(self)
+
+    async def end_processing(self, imagination: Imagination):
+        from .services import imagine_bulk_result
+
+        await imagine_bulk_result(self, imagination)
