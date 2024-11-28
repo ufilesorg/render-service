@@ -3,15 +3,20 @@ import json
 import logging
 import re
 import uuid
+from datetime import datetime
 
 import aiohttp
 from apps.imagination.models import Imagination, ImaginationBulk
 from apps.imagination.schemas import (
     ImaginationEngines,
+    ImaginationStatus,
+    ImagineBulkResponse,
     ImagineResponse,
+    ImagineSchema,
     ImagineWebhookData,
 )
 from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
+from fastapi_mongo_base.tasks import TaskReference, TaskReferenceList, TaskStatusEnum
 from metisai.async_metis import AsyncMetisBot
 from PIL import Image
 from server.config import Settings
@@ -138,6 +143,8 @@ async def process_result(imagination: Imagination, generated_url: str):
         ]
 
     except Exception as e:
+
+        imagination.results = [ImagineResponse(url=generated_url, width=0, height=0)]
         import traceback
 
         traceback_str = "".join(traceback.format_tb(e.__traceback__))
@@ -159,6 +166,7 @@ async def process_imagine_webhook(imagination: Imagination, data: ImagineWebhook
     if data.status == "completed":
         result_url = (data.result or {}).get("uri")
         await process_result(imagination, result_url)
+        await imagination.end_processing()
 
     imagination.task_progress = data.percentage
     imagination.task_status = data.status.task_status
@@ -251,7 +259,7 @@ async def imagine_update(imagination: Imagination, i=0):
     # And Update imagination status
     result = await imagine_engine.result()
     imagination.status = result.status
-
+    print(imagination.status)
     # Process Result
     await process_imagine_webhook(
         imagination, ImagineWebhookData(**result.model_dump())
@@ -261,33 +269,61 @@ async def imagine_update(imagination: Imagination, i=0):
 
 @try_except_wrapper
 async def imagine_bulk_request(imagination_bulk: ImaginationBulk):
-    imagination_bulk.imaginations = imagination_bulk.imaginations or []
-
-    for _, aspect_ratio, engine in imagination_bulk.get_combinations():
-        imagination = Imagination(
-            user_id=imagination_bulk.user_id,
-            prompt=imagination_bulk.prompt,
-            delineation=imagination_bulk.delineation,
-            context=imagination_bulk.context,
-            aspect_ratio=aspect_ratio,
-            engine=engine,
-            mode="imagine",
-            webhook_url=imagination_bulk.item_webhook_url,
+    imagination_bulk.task_references = TaskReferenceList(
+        tasks=[],
+        mode="parallel",
+    )
+    for aspect_ratio, engine in imagination_bulk.get_combinations():
+        imagine = await Imagination.create_item(
+            ImagineSchema(
+                user_id=imagination_bulk.user_id,
+                bulk=str(imagination_bulk.id),
+                engine=engine,
+                prompt=imagination_bulk.prompt,
+                aspect_ratio=aspect_ratio,
+                mode="imagine",
+            ).model_dump()
         )
-        imagination.aspect_ratio = aspect_ratio
-        imagination.engine = engine
-        asyncio.create_task(imagination.start_processing())
-        imagination_bulk.imaginations.append(imagination)
+        imagination_bulk.task_references.tasks.append(
+            TaskReference(task_id=imagine.uid, task_type="Imagination")
+        )
 
+    imagination_bulk.task_status = TaskStatusEnum.processing
     await imagination_bulk.save_report(f"{imagination_bulk} ordered.")
-
-    # Create Short Polling process know the status of the request
-    new_task = asyncio.create_task(imagine_bulk_update(imagination_bulk))
-    return new_task
+    task_items = [
+        await task.get_task_item() for task in imagination_bulk.task_references.tasks
+    ]
+    await asyncio.gather(*[task.start_processing() for task in task_items])
 
 
 @try_except_wrapper
-@delay_execution(Settings.update_time)
-async def imagine_bulk_update(imagination_bulk: ImaginationBulk, i=0):
-    logging.info(f"imagination: {imagination_bulk} {i}")
-    return
+async def imagine_bulk_result(
+    imagination_bulk: ImaginationBulk, imagination: Imagination
+):
+    await imagination.save()
+    data = await Imagination.find(
+        {
+            "bulk": {"$eq": str(imagination_bulk.id)},
+            "status": {"$eq": ImaginationStatus.completed},
+        }
+    ).to_list()
+    imagination_bulk.results = []
+    for item, result in ((item, result) for item in data for result in item.results):
+        imagination_bulk.results.append(
+            ImagineBulkResponse(engine=item.engine, **result.model_dump())
+        )
+
+    imagination_bulk.total_completed += 1
+    await imagination_bulk.save_report(f"Engine {imagination.engine.value} is ended.")
+    await imagine_bulk_process(imagination_bulk)
+
+
+@try_except_wrapper
+async def imagine_bulk_process(imagination_bulk: ImaginationBulk):
+    if (
+        imagination_bulk.total_completed + imagination_bulk.total_failed
+        == imagination_bulk.total_tasks
+    ):
+        imagination_bulk.task_status = TaskStatusEnum.completed
+        imagination_bulk.completed_at = datetime.now()
+        await imagination_bulk.save_report(f"{imagination_bulk} ended.")

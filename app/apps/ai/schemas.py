@@ -66,8 +66,8 @@ class ImaginationEngines(str, Enum):
     # flux = "flux"
     # leonardo = "leonardo"
 
-    @classmethod
-    def bulk_engines(cls):
+    @property
+    def bulk_engines(self) -> list["ImaginationEngines"]:
         return [
             ImaginationEngines.midjourney,
             ImaginationEngines.dalle,

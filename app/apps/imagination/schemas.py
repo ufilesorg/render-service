@@ -1,4 +1,5 @@
-from typing import Any
+from datetime import datetime
+from typing import Any, Generator
 
 from apps.ai.schemas import ImaginationEngines, ImaginationStatus
 from fastapi_mongo_base.schemas import OwnedEntitySchema
@@ -34,6 +35,8 @@ class ImagineResponse(BaseModel):
 class ImagineSchema(TaskMixin, OwnedEntitySchema):
     prompt: str | None = None
     delineation: str | None = None
+    aspect_ratio: str | None = "1:1"
+    bulk: str | None = None
     context: list[dict[str, Any]] | None = None
     aspect_ratio: str | None = "1:1"
     enhance_prompt: bool = False
@@ -62,32 +65,59 @@ class ImagineWebhookData(BaseModel):
         return value
 
 
+class ImagineBulkResponse(BaseModel):
+    url: str
+    width: int
+    height: int
+    engine: ImaginationEngines
+
+
+class ImagineBulkError(BaseModel):
+    task: str
+    message: str
+
+
 class ImagineBulkSchema(TaskMixin, OwnedEntitySchema):
     prompt: str | None = None
-    delineation: str | None = None
-    context: list[dict[str, Any]] | None = None
+    completed_at: datetime | None = None
+    total_tasks: int = 0
+    total_completed: int = 0
+    total_failed: int = 0
+    results: list[ImagineBulkResponse] = []
+    error: list[ImagineBulkError] = []
+    aspect_ratios: list[str]
+    engines: list[ImaginationEngines] = ImaginationEngines.bulk_engines
 
-    aspect_ratios: list[str] = ["1:1"]
-    engines: list[ImaginationEngines] = [ImaginationEngines.midjourney]
-    number: int = 1
+    def get_combinations(
+        self,
+    ) -> Generator[tuple[str, ImaginationEngines], None, None]:
+        for ar, e in zip(self.aspect_ratios, self.engines):
+            yield ar, e
 
-    imaginations: list[ImagineSchema] | None = None
+    # def get_combinations(self):# -> Generator[tuple[int, str, ImaginationEngines]]:
+    #     from itertools import product
 
-    results: list[ImagineResponse] | None = None
-
-    def get_combinations(self):  # -> Generator[tuple[int, str, ImaginationEngines]]:
-        from itertools import product
-
-        for i, ar, e in product(range(self.number), self.aspect_ratios, self.engines):
-            yield i, ar, e
+    #     for i, ar, e in product(range(self.number), self.aspect_ratios, self.engines):
+    #         yield i, ar, e
 
 
 class ImagineCreateBulkSchema(BaseModel):
-    delineation: str | None = None
+    prompt: str | None = None
     enhance_prompt: bool = False
-
-    aspect_ratios: list[str] = ["1:1"]
-    engines: list[ImaginationEngines] = [ImaginationEngines.midjourney]
-    number: int = 1
-
+    aspect_ratios: list[str] | None = None
+    engines: list[ImaginationEngines] = ImaginationEngines.bulk_engines
     webhook_url: str | None = None
+
+    @model_validator(mode="after")
+    def validate_data(cls, values: "ImagineCreateBulkSchema"):
+        values.aspect_ratios = (
+            values.aspect_ratios
+            if len(values.aspect_ratios or []) == len(values.engines)
+            else ["1:1" for _ in values.engines]
+        )
+        for ar, engine in zip(values.aspect_ratios, values.engines):
+            data = values.model_dump()
+            data["aspect_ratio"] = ar
+            data = ImagineCreateSchema(**data, engine=engine)
+
+        return values

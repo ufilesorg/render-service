@@ -6,6 +6,7 @@ from apps.ai.schemas import ImaginationEngines, ImaginationEnginesSchema
 from core.exceptions import BaseHTTPException
 from fastapi import BackgroundTasks
 from fastapi_mongo_base.routes import AbstractBaseRouter
+from fastapi_mongo_base.tasks import TaskStatusEnum
 from usso.fastapi import jwt_access_security
 
 from .models import Imagination, ImaginationBulk
@@ -77,12 +78,6 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
             methods=["GET"],
             response_model=ImagineBulkSchema,
         )
-        self.router.add_api_route(
-            "/imagination/bulk/{uid:uuid}/webhook",
-            self.webhook_bulk,
-            methods=["POST"],
-            status_code=200,
-        )
 
     async def create_item(
         self,
@@ -115,8 +110,9 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
         item: ImaginationBulk = await ImaginationBulk.create_item(
             {
                 "user_id": user_id,
-                "task_status": "init",
+                "task_status": TaskStatusEnum.init,
                 **data.model_dump(),
+                "total_tasks": len(data.engines),
             }
         )
         background_tasks.add_task(item.start_processing)

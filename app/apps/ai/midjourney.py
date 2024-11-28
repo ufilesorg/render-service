@@ -25,7 +25,6 @@ class MidjourneyDetails(EnginesDetails, BaseModel):
     account: str | None = None
     uri: str | None = None
 
-    error: dict | str | None = None
     message: str | None = None
     sender_data: dict | None = None
 
@@ -69,7 +68,6 @@ class Midjourney(Engine):
             ) as response:
                 response.raise_for_status()
                 result = await response.json()
-                print(result)
                 return await self._result_to_details(result)
 
     def validate(self, data):
@@ -99,9 +97,15 @@ class Midjourney(Engine):
     async def _result_to_details(self, result: dict[str, Any], **kwargs):
         status = self._status(result["status"])
         result.pop("status", None)
+        result.pop("error", None)
         return MidjourneyDetails(
             **result,
             id=result.get("uuid"),
             status=status,
+            error=(
+                result["error"]["message"]
+                if result.get("error") and result["error"]["message"]
+                else None
+            ),
             result={"uri": result.get("uri")},
         )
