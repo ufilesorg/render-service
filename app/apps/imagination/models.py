@@ -61,8 +61,7 @@ class ImaginationBulk(ImagineBulkSchema, OwnedEntity):
     @property
     def item_url(self):
         return f"https://{Settings.root_url}{Settings.base_path}/imagination/bulk/{self.uid}"
-    
-    
+
     async def start_processing(self):
         from .services import imagine_bulk_request
 

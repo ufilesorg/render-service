@@ -1,4 +1,4 @@
-from typing import Any, Literal, Generator
+from typing import Any
 
 from apps.ai.schemas import ImaginationEngines, ImaginationStatus
 from fastapi_mongo_base.schemas import OwnedEntitySchema
@@ -7,7 +7,7 @@ from pydantic import BaseModel, field_validator, model_validator
 
 
 class ImagineCreateSchema(BaseModel):
-    prompt: str | None = None
+    # prompt: str | None = None
     engine: ImaginationEngines = ImaginationEngines.midjourney
     aspect_ratio: str | None = "1:1"
     delineation: str | None = None
@@ -34,10 +34,10 @@ class ImagineResponse(BaseModel):
 class ImagineSchema(TaskMixin, OwnedEntitySchema):
     prompt: str | None = None
     delineation: str | None = None
-    aspect_ratio: str | None = "1:1"
     context: list[dict[str, Any]] | None = None
+    aspect_ratio: str | None = "1:1"
+    enhance_prompt: bool = False
     engine: ImaginationEngines = ImaginationEngines.midjourney
-    mode: Literal["imagine"] = "imagine"
     status: ImaginationStatus = ImaginationStatus.init
     results: list[ImagineResponse] | None = None
 
@@ -68,14 +68,14 @@ class ImagineBulkSchema(TaskMixin, OwnedEntitySchema):
     context: list[dict[str, Any]] | None = None
 
     aspect_ratios: list[str] = ["1:1"]
-    engines: list[ImaginationEngines] = ImaginationEngines.midjourney
+    engines: list[ImaginationEngines] = [ImaginationEngines.midjourney]
     number: int = 1
 
     imaginations: list[ImagineSchema] | None = None
 
     results: list[ImagineResponse] | None = None
 
-    def get_combinations(self):# -> Generator[tuple[int, str, ImaginationEngines]]:
+    def get_combinations(self):  # -> Generator[tuple[int, str, ImaginationEngines]]:
         from itertools import product
 
         for i, ar, e in product(range(self.number), self.aspect_ratios, self.engines):
@@ -83,9 +83,11 @@ class ImagineBulkSchema(TaskMixin, OwnedEntitySchema):
 
 
 class ImagineCreateBulkSchema(BaseModel):
-    prompt: str | None = None
-    aspect_ratio: str | None = "1:1"
+    delineation: str | None = None
     enhance_prompt: bool = False
-    engines: list[ImaginationEngines] = ImaginationEngines.bulk_engines()
+
+    aspect_ratios: list[str] = ["1:1"]
+    engines: list[ImaginationEngines] = [ImaginationEngines.midjourney]
     number: int = 1
+
     webhook_url: str | None = None

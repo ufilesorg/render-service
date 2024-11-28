@@ -191,7 +191,10 @@ async def create_prompt(imagination: Imagination, enhance: bool = False):
         return f'{item.get("topic", "")} {await ai.translate(item.get("value", ""))}'
 
     # Translate prompt using ai
-    prompt = await ai.translate(imagination.prompt or imagination.delineation or "")
+    if imagination.enhance_prompt:
+        prompt = await ai.translate(imagination.prompt or imagination.delineation or "")
+    else:
+        prompt = await ai.translate(imagination.prompt or imagination.delineation or "")
 
     # Convert prompt ai properties to array
     context = await asyncio.gather(
@@ -211,8 +214,6 @@ async def create_prompt(imagination: Imagination, enhance: bool = False):
 
 @try_except_wrapper
 async def imagine_request(imagination: Imagination):
-    if imagination.mode != "imagine":
-        return
     # Get Engine class and validate it
     imagine_engine = imagination.engine.get_class(imagination)
     if imagine_engine is None:

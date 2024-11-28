@@ -29,6 +29,14 @@ class Engine:
         self.item = item
         self.engine = engine
 
+    @property
+    def supported_aspect_ratios(self):
+        return {"1:1"}
+
+    @property
+    def thumbnail_url(self):
+        raise NotImplementedError("thumbnail_url is not implemented")
+
     # Get Result from service(client / API)
     async def result(self, **kwargs) -> EnginesDetails:
         pass

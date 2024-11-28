@@ -137,10 +137,8 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
                 message=f"{ImaginationBulk.__name__.capitalize()} not found",
             )
         return item
-    
-    async def webhook_bulk(
-        self, request: fastapi.Request, uid: uuid.UUID, data: dict
-    ):
+
+    async def webhook_bulk(self, request: fastapi.Request, uid: uuid.UUID, data: dict):
         logging.info(f"Webhook received: {await request.json()}")
         return {}
         item: Imagination = await self.get_item(uid, user_id=None)

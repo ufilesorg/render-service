@@ -84,7 +84,7 @@ class ImaginationEngines(str, Enum):
             # ImaginationEngines.leonardo: "4b69d78d-e454-4f4b-93ed-427b46368977",
         }[self]
 
-    def get_class(self, imagination: Any):
+    def get_class(self, imagination: Any):  # -> Engine:
         from .dalle import Dalle
         from .midjourney import Midjourney
         from .replicate_engine import Replicate
@@ -172,13 +172,23 @@ class ImaginationEngines(str, Enum):
             },
             ImaginationEngines.dalle: {"1:1"},
             ImaginationEngines.midjourney: {
-                "4:5",
-                "2:3",
-                "4:7",
+                "10:16",
+                "16:10",
+                "16:9",
                 "1:1",
-                "5:4",
+                "1:3",
+                "21:9",
+                "2:3",
+                "3:1",
                 "3:2",
+                "3:4",
+                "4:3",
+                "4:5",
+                "4:7",
+                "5:4",
                 "7:4",
+                "9:16",
+                "9:21",
             },
         }[self]
 
