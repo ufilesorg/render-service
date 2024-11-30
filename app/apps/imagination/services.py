@@ -199,10 +199,11 @@ async def create_prompt(imagination: Imagination, enhance: bool = False):
         return f'{item.get("topic", "")} {await ai.translate(item.get("value", ""))}'
 
     # Translate prompt using ai
+    raw = imagination.prompt or imagination.delineation or ""
     if imagination.enhance_prompt:
-        prompt = await ai.translate(imagination.prompt or imagination.delineation or "")
+        resp = await ai.answer_with_ai(key="prompt_builder", image_idea=raw)
     else:
-        prompt = await ai.translate(imagination.prompt or imagination.delineation or "")
+        prompt = await ai.translate(raw)
 
     # Convert prompt ai properties to array
     context = await asyncio.gather(
@@ -211,7 +212,7 @@ async def create_prompt(imagination: Imagination, enhance: bool = False):
 
     # Create final prompt using user prompt and prompt properties
     prompt += ", " + ", ".join(context)
-    prompt = prompt.strip(",").strip(".").strip()
+    prompt = prompt.strip(",. ")
 
     if enhance:
         # TODO: Enhance the prompt

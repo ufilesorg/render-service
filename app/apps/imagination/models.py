@@ -87,7 +87,7 @@ class ImaginationBulk(ImagineBulkSchema, OwnedEntity):
     async def fail(self):
         self.total_failed += 1
         print(f"self.total_failed:{self.total_failed}")
-        data = await Imagination.find(
+        data: list[Imagination] = await Imagination.find(
             {
                 "bulk": {"$eq": str(self.id)},
                 "status": {"$eq": ImaginationStatus.completed},

@@ -1,9 +1,10 @@
 import json
 import logging
+import os
 
-import langdetect
 from metisai.async_metis import AsyncMetisBot
 from server.config import Settings
+from usso.async_session import AsyncUssoSession
 from utils.texttools import backtick_formatter
 
 metis_client = AsyncMetisBot(
@@ -30,38 +31,25 @@ async def answer_messages(messages: dict, **kwargs):
         return {"answer": resp_text}
 
 
-async def translate(query: str, to: str = "en"):
+async def answer_with_ai(key, **kwargs) -> dict:
+    kwargs["lang"] = kwargs.get("lang", "Persian")
     try:
-        lang = langdetect.detect(query)
-    except:
-        lang = "en"
+        async with AsyncUssoSession(
+            sso_refresh_url=os.getenv("USSO_REFRESH_URL"),
+            refresh_token=os.getenv("USSO_REFRESH_TOKEN"),
+        ) as session:
+            async with session.post(
+                f'{os.getenv("PROMPTLY_URL")}/{key}', json=kwargs
+            ) as response:
+                response.raise_for_status()
+                return await response.json()
 
-    if lang == to:
-        return query
+        return await answer_messages(messages, **kwargs)
+    except Exception as e:
+        logging.error(f"AI request failed for {key}, {e}")
+        raise e
 
-    languages = {
-        "en": "English",
-        "fa": "Persian",
-    }
-    if not languages.get(to):
-        to = "en"
-    prompt = "\n".join(
-        [
-            f"You are perfect translator to {to} language.",
-            f"Just reply the answer in json format like",
-            f'`{{"answer": "Your translated text"}}`',
-            f"",
-            f"Translate the following text to '{to}': \"{query}\".",
-        ]
-    )
 
-    messages = [{"content": prompt}]
-    response = await answer_messages(messages)
-    logging.info(f"process_task {query} {response}")
-    return response["answer"]
-
-    session = await metis_client.create_session()
-    response = await metis_client.send_message(session, prompt)
-    await metis_client.delete_session(session)
-    resp_text = backtick_formatter(response.content)
-    return resp_text
+async def translate(text: str) -> str:
+    resp: dict = await answer_with_ai("translate", text=text)
+    return resp.get("translated_text")

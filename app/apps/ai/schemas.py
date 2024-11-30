@@ -63,7 +63,7 @@ class ImaginationEngines(str, Enum):
     stability = "stability"
     flux_1_1 = "flux_1.1"
     dalle = "dalle"
-    # flux = "flux"
+    flux = "flux"
     # leonardo = "leonardo"
 
     @property
@@ -115,6 +115,7 @@ class ImaginationEngines(str, Enum):
             ImaginationEngines.midjourney: "https://media.pixiee.io/v1/f/4a0980aa-8d97-4493-bdb1-fb3d67d891e3/midjourney-icon.png?width=100",
             ImaginationEngines.ideogram: "https://media.pixiee.io/v1/f/19d4df43-ea1e-4562-a8e1-8ee301bd0a88/ideogram-icon.png?width=100",
             ImaginationEngines.flux_schnell: "https://media.pixiee.io/v1/f/cf21c500-6e84-4915-a5d1-19b8f325a382/flux-icon.png?width=100",
+            ImaginationEngines.flux: "https://media.pixiee.io/v1/f/cf21c500-6e84-4915-a5d1-19b8f325a382/flux-icon.png?width=100",
             ImaginationEngines.stability: "https://media.pixiee.io/v1/f/6d0a2e82-7667-46ec-af33-0e557f16e356/stability-icon.png?width=100",
             ImaginationEngines.flux_1_1: "https://media.pixiee.io/v1/f/cf21c500-6e84-4915-a5d1-19b8f325a382/flux-icon.png?width=100",
         }[self]
@@ -187,6 +188,19 @@ class ImaginationEngines(str, Enum):
                 "4:7",
                 "5:4",
                 "7:4",
+                "9:16",
+                "9:21",
+            },
+            ImaginationEngines.flux: {
+                "1:1",
+                "16:9",
+                "21:9",
+                "3:2",
+                "2:3",
+                "4:5",
+                "5:4",
+                "3:4",
+                "4:3",
                 "9:16",
                 "9:21",
             },

@@ -88,6 +88,7 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
         item: Imagination = await super().create_item(request, data.model_dump())
         item.task_status = "init"
         background_tasks.add_task(item.start_processing)
+        # await item.start_processing()
         return item
 
     async def webhook(

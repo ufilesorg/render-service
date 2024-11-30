@@ -27,6 +27,7 @@ class Replicate(Engine):
             ImaginationEngines.ideogram: "ideogram-ai/ideogram-v2-turbo",
             ImaginationEngines.flux_schnell: "black-forest-labs/flux-schnell",
             ImaginationEngines.flux_1_1: "black-forest-labs/flux-1.1-pro",
+            ImaginationEngines.flux: "black-forest-labs/flux-schnell",
             ImaginationEngines.stability: "stability-ai/stable-diffusion-3",
         }[engine]
 

@@ -35,12 +35,14 @@ class ImagineResponse(BaseModel):
 class ImagineSchema(TaskMixin, OwnedEntitySchema):
     prompt: str | None = None
     delineation: str | None = None
-    aspect_ratio: str | None = "1:1"
-    bulk: str | None = None
     context: list[dict[str, Any]] | None = None
+
+    engine: ImaginationEngines = ImaginationEngines.midjourney
     aspect_ratio: str | None = "1:1"
     enhance_prompt: bool = False
-    engine: ImaginationEngines = ImaginationEngines.midjourney
+
+    bulk: str | None = None
+
     status: ImaginationStatus = ImaginationStatus.init
     results: list[ImagineResponse] | None = None
 
