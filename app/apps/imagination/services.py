@@ -143,8 +143,6 @@ async def process_result(imagination: Imagination, generated_url: str):
         ]
 
     except Exception as e:
-
-        imagination.results = [ImagineResponse(url=generated_url, width=0, height=0)]
         import traceback
 
         traceback_str = "".join(traceback.format_tb(e.__traceback__))
@@ -241,29 +239,29 @@ async def imagine_request(imagination: Imagination):
     await imagination.save_report(f"{imagination.engine.value} has been requested.")
 
     # Create Short Polling process know the status of the request
-    new_task = asyncio.create_task(imagine_update(imagination))
-    return new_task
+    return await imagine_update(imagination)
 
 
 @try_except_wrapper
 @delay_execution(Settings.update_time)
 async def imagine_update(imagination: Imagination, i=0):
-    # Stop Short polling when the request is finished
-    if imagination.status.is_done:
-        return
-
     imagine_engine = imagination.engine.get_class(imagination)
 
     # Get Result from service by engine class
     # And Update imagination status
     result = await imagine_engine.result()
     imagination.status = result.status
-    print(imagination.status)
+
     # Process Result
     await process_imagine_webhook(
         imagination, ImagineWebhookData(**result.model_dump())
     )
-    return asyncio.create_task(imagine_update(imagination, i + 1))
+
+    # Stop Short polling when the request is finished
+    if imagination.status.is_done:
+        return
+
+    return await imagine_update(imagination, i + 1)
 
 
 @try_except_wrapper
