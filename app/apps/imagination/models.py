@@ -34,10 +34,10 @@ class Imagination(ImagineSchema, OwnedEntity):
             main_task = await ImaginationBulk.get(self.bulk)
             await main_task.end_processing(self)
 
-    async def retry(self, message: str, max_retries: int = 0):
+    async def retry(self, message: str, max_retries: int = 5):
         self.meta_data = self.meta_data or {}
         retry_count = self.meta_data.get("retry_count", 0)
-        print(max_retries)
+
         if retry_count < max_retries:
             self.meta_data["retry_count"] = retry_count + 1
             await self.save_report(
@@ -58,7 +58,6 @@ class Imagination(ImagineSchema, OwnedEntity):
         await self.save_and_emit()
         if self.bulk:
             main_task = await ImaginationBulk.get(self.bulk)
-            print("failed")
             await main_task.fail()
 
     @classmethod
@@ -86,14 +85,12 @@ class ImaginationBulk(ImagineBulkSchema, OwnedEntity):
     @try_except_wrapper
     async def fail(self):
         self.total_failed += 1
-        print(f"self.total_failed:{self.total_failed}")
         data: list[Imagination] = await Imagination.find(
             {
                 "bulk": {"$eq": str(self.id)},
                 "status": {"$eq": ImaginationStatus.completed},
             }
         ).to_list()
-        print(data)
         self.error = []
         for item in data:
             self.error.append(

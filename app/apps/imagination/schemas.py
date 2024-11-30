@@ -11,6 +11,7 @@ class ImagineCreateSchema(BaseModel):
     # prompt: str | None = None
     engine: ImaginationEngines = ImaginationEngines.midjourney
     aspect_ratio: str | None = "1:1"
+    sync: bool | None = False
     delineation: str | None = None
     context: list[dict[str, Any]] | None = None
     enhance_prompt: bool = False
