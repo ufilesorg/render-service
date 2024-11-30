@@ -6,6 +6,12 @@ import uuid
 from datetime import datetime
 
 import aiohttp
+from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
+from fastapi_mongo_base.tasks import TaskReference, TaskReferenceList, TaskStatusEnum
+from metisai.async_metis import AsyncMetisBot
+from PIL import Image
+from usso.async_session import AsyncUssoSession
+
 from apps.imagination.models import Imagination, ImaginationBulk
 from apps.imagination.schemas import (
     ImaginationEngines,
@@ -15,12 +21,7 @@ from apps.imagination.schemas import (
     ImagineSchema,
     ImagineWebhookData,
 )
-from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
-from fastapi_mongo_base.tasks import TaskReference, TaskReferenceList, TaskStatusEnum
-from metisai.async_metis import AsyncMetisBot
-from PIL import Image
 from server.config import Settings
-from usso.async_session import AsyncUssoSession
 from utils import ai, aionetwork, imagetools, ufiles
 
 
@@ -200,7 +201,7 @@ async def create_prompt(imagination: Imagination, enhance: bool = False):
     raw = imagination.prompt or imagination.delineation or ""
     if imagination.enhance_prompt:
         resp = await ai.answer_with_ai(key="prompt_builder", image_idea=raw)
-        prompt = resp.get('image_prompt', raw)
+        prompt = resp.get("image_prompt", raw)
     else:
         prompt = await ai.translate(raw)
 
@@ -237,6 +238,7 @@ async def imagine_request(imagination: Imagination):
 
     # Store Engine response
     imagination.meta_data = (imagination.meta_data or {}) | mid_request.model_dump()
+    imagination.error = mid_request.error
     imagination.status = mid_request.status
     imagination.task_status = mid_request.status.task_status
     await imagination.save_report(f"{imagination.engine.value} has been requested.")
@@ -253,6 +255,7 @@ async def imagine_update(imagination: Imagination, i=0):
     # Get Result from service by engine class
     # And Update imagination status
     result = await imagine_engine.result()
+    imagination.error = result.error
     imagination.status = result.status
 
     # Process Result

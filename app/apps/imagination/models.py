@@ -4,6 +4,7 @@ import logging
 from fastapi_mongo_base._utils.basic import try_except_wrapper
 from fastapi_mongo_base.models import OwnedEntity
 from fastapi_mongo_base.tasks import TaskStatusEnum
+
 from server.config import Settings
 
 from .schemas import (
@@ -47,7 +48,6 @@ class Imagination(ImagineSchema, OwnedEntity):
             asyncio.create_task(self.start_processing())
             logging.info(f"Retry {retry_count} {self.uid}")
             return retry_count + 1
-
         await self.fail(message)
         return -1
 
@@ -88,13 +88,13 @@ class ImaginationBulk(ImagineBulkSchema, OwnedEntity):
         data: list[Imagination] = await Imagination.find(
             {
                 "bulk": {"$eq": str(self.id)},
-                "status": {"$eq": ImaginationStatus.completed},
+                "status": {"$eq": ImaginationStatus.error},
             }
         ).to_list()
-        self.error = []
+        self.errors = []
         for item in data:
-            self.error.append(
-                ImagineBulkError(task=str(item.id), message=item.error or "")
+            self.errors.append(
+                ImagineBulkError(engine=item.engine, message=item.error or f"Error")
             )
         await self.save()
         from .services import imagine_bulk_process

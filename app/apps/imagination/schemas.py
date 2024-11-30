@@ -1,10 +1,11 @@
 from datetime import datetime
 from typing import Any, Generator
 
-from apps.ai.schemas import ImaginationEngines, ImaginationStatus
 from fastapi_mongo_base.schemas import OwnedEntitySchema
 from fastapi_mongo_base.tasks import TaskMixin
 from pydantic import BaseModel, field_validator, model_validator
+
+from apps.ai.schemas import ImaginationEngines, ImaginationStatus
 
 
 class ImagineCreateSchema(BaseModel):
@@ -37,6 +38,7 @@ class ImagineSchema(TaskMixin, OwnedEntitySchema):
     prompt: str | None = None
     delineation: str | None = None
     context: list[dict[str, Any]] | None = None
+    error: Any | None = None
 
     engine: ImaginationEngines = ImaginationEngines.midjourney
     aspect_ratio: str | None = "1:1"
@@ -76,7 +78,7 @@ class ImagineBulkResponse(BaseModel):
 
 
 class ImagineBulkError(BaseModel):
-    task: str
+    engine: ImaginationEngines
     message: str
 
 
@@ -87,7 +89,7 @@ class ImagineBulkSchema(TaskMixin, OwnedEntitySchema):
     total_completed: int = 0
     total_failed: int = 0
     results: list[ImagineBulkResponse] = []
-    error: list[ImagineBulkError] = []
+    errors: list[ImagineBulkError] = []
     aspect_ratios: list[str]
     engines: list[ImaginationEngines] = ImaginationEngines.bulk_engines
 
@@ -96,12 +98,6 @@ class ImagineBulkSchema(TaskMixin, OwnedEntitySchema):
     ) -> Generator[tuple[str, ImaginationEngines], None, None]:
         for ar, e in zip(self.aspect_ratios, self.engines):
             yield ar, e
-
-    # def get_combinations(self):# -> Generator[tuple[int, str, ImaginationEngines]]:
-    #     from itertools import product
-
-    #     for i, ar, e in product(range(self.number), self.aspect_ratios, self.engines):
-    #         yield i, ar, e
 
 
 class ImagineCreateBulkSchema(BaseModel):
