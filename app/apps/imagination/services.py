@@ -200,6 +200,7 @@ async def create_prompt(imagination: Imagination, enhance: bool = False):
     raw = imagination.prompt or imagination.delineation or ""
     if imagination.enhance_prompt:
         resp = await ai.answer_with_ai(key="prompt_builder", image_idea=raw)
+        prompt = resp.get('image_prompt', raw)
     else:
         prompt = await ai.translate(raw)
 
