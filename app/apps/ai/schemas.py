@@ -31,6 +31,18 @@ class ImaginationStatus(str, Enum):
             "error": ImaginationStatus.error,
         }.get(status, ImaginationStatus.error)
 
+    @classmethod
+    def done_statuses(cls):
+        return [
+            status.value
+            for status in [
+                ImaginationStatus.done,
+                ImaginationStatus.completed,
+                ImaginationStatus.cancelled,
+                ImaginationStatus.error,
+            ]
+        ]
+
     @property
     def task_status(self):
         return {
