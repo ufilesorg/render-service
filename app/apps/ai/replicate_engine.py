@@ -1,7 +1,6 @@
 from typing import Any, Literal
 
 import replicate.prediction
-
 from apps.ai.schemas import ImaginationEngines
 
 from .engine import Engine, EnginesDetails
