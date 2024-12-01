@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from .models import Imagination
 from .schemas import ImaginationEngines, ImaginationStatus
-from .services import update_imagination_worker
+from .services import update_imagination_status
 
 
 async def update_imagination():
@@ -14,10 +14,9 @@ async def update_imagination():
                 "created_at": {"$lte": datetime.now() - timedelta(minutes=3)},
                 "status": {"$nin": ImaginationStatus.done_statuses()},
                 "engine": {"$in": ImaginationEngines},
-                "meta_data": {"$exists": True, "$ne": None},
             }
         )
         .to_list()
     )
     for imagination in data:
-        asyncio.create_task(update_imagination_worker(imagination))
+        asyncio.create_task(update_imagination_status(imagination))

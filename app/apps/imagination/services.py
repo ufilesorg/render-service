@@ -3,7 +3,7 @@ import json
 import logging
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import aiohttp
 from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
@@ -178,9 +178,19 @@ async def process_imagine_webhook(imagination: Imagination, data: ImagineWebhook
 
     await imagination.save_report(report)
 
-    if report == "midjourney completed." and imagination.task_status != "completed":
+    if data.status == "completed" and imagination.task_status != "completed":
         logging.info(
             f"{json.dumps(imagination.model_dump(), indent=2, ensure_ascii=False)},\n{json.dumps(data.model_dump(), indent=2, ensure_ascii=False)}"
+        )
+
+    if not data.status.is_done and datetime.now() - imagination.created_at >= timedelta(
+        minutes=10
+    ):
+        imagination.task_status = TaskStatusEnum.error
+        imagination.status = ImaginationStatus.error
+        imagination.error = "Service Timeout Error: The service did not provide a result within the expected time frame."
+        await imagination.save_report(
+            f"{imagination.engine.value} service didn't respond in time."
         )
 
 
@@ -333,8 +343,11 @@ async def imagine_bulk_process(imagination_bulk: ImaginationBulk):
 
 
 @try_except_wrapper
-async def update_imagination_worker(imagination: Imagination):
+async def update_imagination_status(imagination: Imagination):
     try:
+        if imagination.meta_data is None:
+            raise ValueError("Imagination has no meta_data.")
+
         imagine_engine = imagination.engine.get_class(imagination)
         result = await imagine_engine.result()
         imagination.error = result.error
