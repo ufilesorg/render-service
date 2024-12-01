@@ -2,11 +2,9 @@ import asyncio
 import logging
 
 import pytz
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
 from apps.imagination.worker import update_imagination
-
-from .config import Settings
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from server.config import Settings
 
 irst_timezone = pytz.timezone("Asia/Tehran")
 logging.getLogger("apscheduler").setLevel(logging.WARNING)

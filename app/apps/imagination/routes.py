@@ -2,13 +2,12 @@ import logging
 import uuid
 
 import fastapi
+from apps.ai.schemas import ImaginationEngines, ImaginationEnginesSchema
+from core.exceptions import BaseHTTPException
 from fastapi import BackgroundTasks
 from fastapi_mongo_base.routes import AbstractBaseRouter
 from fastapi_mongo_base.tasks import TaskStatusEnum
 from usso.fastapi import jwt_access_security
-
-from apps.ai.schemas import ImaginationEngines, ImaginationEnginesSchema
-from core.exceptions import BaseHTTPException
 
 from .models import Imagination, ImaginationBulk
 from .schemas import (
@@ -85,10 +84,11 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
         request: fastapi.Request,
         data: ImagineCreateSchema,
         background_tasks: BackgroundTasks,
+        sync: bool = False,
     ):
         item: Imagination = await super().create_item(request, data.model_dump())
         item.task_status = "init"
-        if data.sync:
+        if sync:
             await item.start_processing()
         else:
             background_tasks.add_task(item.start_processing)

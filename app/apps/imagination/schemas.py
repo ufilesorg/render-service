@@ -1,18 +1,17 @@
 from datetime import datetime
 from typing import Any, Generator
 
+from apps.ai.schemas import ImaginationEngines, ImaginationStatus
 from fastapi_mongo_base.schemas import OwnedEntitySchema
 from fastapi_mongo_base.tasks import TaskMixin
 from pydantic import BaseModel, field_validator, model_validator
-
-from apps.ai.schemas import ImaginationEngines, ImaginationStatus
 
 
 class ImagineCreateSchema(BaseModel):
     # prompt: str | None = None
     engine: ImaginationEngines = ImaginationEngines.midjourney
     aspect_ratio: str | None = "1:1"
-    sync: bool | None = False
+    # sync: bool | None = False
     delineation: str | None = None
     context: list[dict[str, Any]] | None = None
     enhance_prompt: bool = False
