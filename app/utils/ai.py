@@ -51,5 +51,5 @@ async def answer_with_ai(key, **kwargs) -> dict:
 
 
 async def translate(text: str) -> str:
-    resp: dict = await answer_with_ai("translate", text=text)
+    resp: dict = await answer_with_ai("graphic_translate", text=text)
     return resp.get("translated_text")
