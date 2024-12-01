@@ -330,3 +330,14 @@ async def imagine_bulk_process(imagination_bulk: ImaginationBulk):
         imagination_bulk.task_status = TaskStatusEnum.completed
         imagination_bulk.completed_at = datetime.now()
         await imagination_bulk.save_report(f"{imagination_bulk} ended.")
+
+
+@try_except_wrapper
+async def update_imagination_worker(imagination: Imagination):
+    imagine_engine = imagination.engine.get_class(imagination)
+    result = await imagine_engine.result()
+    imagination.error = result.error
+    imagination.status = result.status
+    await process_imagine_webhook(
+        imagination, ImagineWebhookData(**result.model_dump())
+    )
