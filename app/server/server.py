@@ -20,7 +20,6 @@ async def lifespan(app: fastapi.FastAPI):  # type: ignore
     config.Settings().config_logger()
     await db.init_db()
     app.state.worker = asyncio.create_task(worker.worker())
-    await worker.update_imagination()
 
     logging.info("Startup complete")
     yield
@@ -140,12 +139,12 @@ async def health(request: fastapi.Request):
 
     return {
         "status": "up",
-        "host": request.url.hostname,
-        "host2": request.base_url.hostname,
-        "original_host": original_host,
-        "forwarded_host": forwarded_host,
-        "forwarded_proto": forwarded_proto,
-        "forwarded_for": forwarded_for,
+        # "host": request.url.hostname,
+        # "host2": request.base_url.hostname,
+        # "original_host": original_host,
+        # "forwarded_host": forwarded_host,
+        # "forwarded_proto": forwarded_proto,
+        # "forwarded_for": forwarded_for,
     }
 
 
