@@ -3,9 +3,8 @@ import logging
 import os
 
 from metisai.async_metis import AsyncMetisBot
-from usso.async_session import AsyncUssoSession
-
 from server.config import Settings
+from usso.async_session import AsyncUssoSession
 from utils.texttools import backtick_formatter
 
 metis_client = AsyncMetisBot(
