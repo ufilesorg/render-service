@@ -3,6 +3,7 @@ from typing import Any
 
 from fastapi_mongo_base.tasks import TaskStatusEnum
 from pydantic import BaseModel
+
 from server.config import Settings
 
 
@@ -29,6 +30,18 @@ class ImaginationStatus(str, Enum):
             "completed": ImaginationStatus.completed,
             "error": ImaginationStatus.error,
         }.get(status, ImaginationStatus.error)
+
+    @classmethod
+    def done_statuses(cls):
+        return [
+            status.value
+            for status in [
+                ImaginationStatus.done,
+                ImaginationStatus.completed,
+                ImaginationStatus.cancelled,
+                ImaginationStatus.error,
+            ]
+        ]
 
     @property
     def task_status(self):

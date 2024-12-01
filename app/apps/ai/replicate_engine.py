@@ -1,6 +1,7 @@
 from typing import Any, Literal
 
 import replicate.prediction
+
 from apps.ai.schemas import ImaginationEngines
 
 from .engine import Engine, EnginesDetails
@@ -72,7 +73,7 @@ class Replicate(Engine):
         prediction_data.pop("model", None)
         return ReplicateDetails(
             **prediction_data,
-            prompt=prediction.input["prompt"],
+            prompt=prediction.input["prompt"] if prediction.input else self.item.prompt,
             status=self._status(prediction.status),
             model=self.application_name,
             result=(

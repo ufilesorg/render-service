@@ -3,9 +3,15 @@ import json
 import logging
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import aiohttp
+from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
+from fastapi_mongo_base.tasks import TaskReference, TaskReferenceList, TaskStatusEnum
+from metisai.async_metis import AsyncMetisBot
+from PIL import Image
+from usso.async_session import AsyncUssoSession
+
 from apps.imagination.models import Imagination, ImaginationBulk
 from apps.imagination.schemas import (
     ImaginationEngines,
@@ -15,12 +21,7 @@ from apps.imagination.schemas import (
     ImagineSchema,
     ImagineWebhookData,
 )
-from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
-from fastapi_mongo_base.tasks import TaskReference, TaskReferenceList, TaskStatusEnum
-from metisai.async_metis import AsyncMetisBot
-from PIL import Image
 from server.config import Settings
-from usso.async_session import AsyncUssoSession
 from utils import ai, aionetwork, imagetools, ufiles
 
 
@@ -177,9 +178,19 @@ async def process_imagine_webhook(imagination: Imagination, data: ImagineWebhook
 
     await imagination.save_report(report)
 
-    if report == "midjourney completed." and imagination.task_status != "completed":
+    if data.status == "completed" and imagination.task_status != "completed":
         logging.info(
             f"{json.dumps(imagination.model_dump(), indent=2, ensure_ascii=False)},\n{json.dumps(data.model_dump(), indent=2, ensure_ascii=False)}"
+        )
+
+    if not data.status.is_done and datetime.now() - imagination.created_at >= timedelta(
+        minutes=10
+    ):
+        imagination.task_status = TaskStatusEnum.error
+        imagination.status = ImaginationStatus.error
+        imagination.error = "Service Timeout Error: The service did not provide a result within the expected time frame."
+        await imagination.save_report(
+            f"{imagination.engine.value} service didn't respond in time."
         )
 
 
@@ -329,3 +340,22 @@ async def imagine_bulk_process(imagination_bulk: ImaginationBulk):
         imagination_bulk.task_status = TaskStatusEnum.completed
         imagination_bulk.completed_at = datetime.now()
         await imagination_bulk.save_report(f"{imagination_bulk} ended.")
+
+
+@try_except_wrapper
+async def update_imagination_status(imagination: Imagination):
+    try:
+        if imagination.meta_data is None:
+            raise ValueError("Imagination has no meta_data.")
+
+        imagine_engine = imagination.engine.get_class(imagination)
+        result = await imagine_engine.result()
+        imagination.error = result.error
+        imagination.status = result.status
+        await process_imagine_webhook(
+            imagination, ImagineWebhookData(**result.model_dump())
+        )
+    except Exception as e:
+        imagination.status = ImaginationStatus.error
+        imagination.error = str(e)
+        await imagination.save()

@@ -1,16 +1,18 @@
+import asyncio
 import json
 import logging
 from contextlib import asynccontextmanager
 
 import fastapi
 import pydantic
-from core import exceptions
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from json_advanced import dumps
 from usso.exceptions import USSOException
 
-from . import config, db, middlewares
+from core import exceptions
+
+from . import config, db, middlewares, worker
 
 
 @asynccontextmanager
@@ -18,9 +20,12 @@ async def lifespan(app: fastapi.FastAPI):  # type: ignore
     """Initialize application services."""
     config.Settings().config_logger()
     await db.init_db()
+    app.state.worker = asyncio.create_task(worker.worker())
+    await worker.update_imagination()
 
     logging.info("Startup complete")
     yield
+    app.state.worker.cancel()
     logging.info("Shutdown complete")
 
 

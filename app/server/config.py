@@ -23,6 +23,7 @@ class Settings(metaclass=Singleton):
     base_path: str = "/v1/apps/imagine"
     page_max_limit: int = 100
     update_time: int = 10
+    worker_update_time: int = int(os.getenv("WORKER_UPDATE_TIME", default="180"))
 
     app_id: str = os.getenv("APP_ID")
     app_secret: str = os.getenv("APP_SECRET")
