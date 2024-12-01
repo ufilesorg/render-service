@@ -334,10 +334,15 @@ async def imagine_bulk_process(imagination_bulk: ImaginationBulk):
 
 @try_except_wrapper
 async def update_imagination_worker(imagination: Imagination):
-    imagine_engine = imagination.engine.get_class(imagination)
-    result = await imagine_engine.result()
-    imagination.error = result.error
-    imagination.status = result.status
-    await process_imagine_webhook(
-        imagination, ImagineWebhookData(**result.model_dump())
-    )
+    try:
+        imagine_engine = imagination.engine.get_class(imagination)
+        result = await imagine_engine.result()
+        imagination.error = result.error
+        imagination.status = result.status
+        await process_imagine_webhook(
+            imagination, ImagineWebhookData(**result.model_dump())
+        )
+    except Exception as e:
+        imagination.status = ImaginationStatus.error
+        imagination.error = str(e)
+        await imagination.save()

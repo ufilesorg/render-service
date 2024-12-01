@@ -1,14 +1,23 @@
-from singleton import Singleton
+import asyncio
+from datetime import datetime, timedelta
 
-
-class ImaginationWorker(metaclass=Singleton):
-    def __init__(self) -> None:
-        self.tasks = []
-
-    def add_task(self, task):
-        self.tasks.append(task)
+from .models import Imagination
+from .schemas import ImaginationEngines, ImaginationStatus
+from .services import update_imagination_worker
 
 
 async def update_imagination():
-    for task in ImaginationWorker().tasks:
-        await task()
+    data: list[Imagination] = (
+        await Imagination.get_query()
+        .find(
+            {
+                "created_at": {"$lte": datetime.now() - timedelta(minutes=3)},
+                "status": {"$nin": ImaginationStatus.done_statuses()},
+                "engine": {"$in": ImaginationEngines},
+                "meta_data": {"$exists": True, "$ne": None},
+            }
+        )
+        .to_list()
+    )
+    for imagination in data:
+        asyncio.create_task(update_imagination_worker(imagination))
