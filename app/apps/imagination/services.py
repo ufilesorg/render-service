@@ -356,5 +356,6 @@ async def update_imagination_status(imagination: Imagination):
         )
     except Exception as e:
         imagination.status = ImaginationStatus.error
+        imagination.task_status = ImaginationStatus.error
         imagination.error = str(e)
         await imagination.save()
