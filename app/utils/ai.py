@@ -32,7 +32,8 @@ async def answer_messages(messages: dict, **kwargs):
 
 
 async def answer_with_ai(key, **kwargs) -> dict:
-    kwargs["lang"] = kwargs.get("lang", "Persian")
+    kwargs["source_language"] = kwargs.get("lang", "Persian")
+    kwargs["target_language"] = kwargs.get("target_language", "English")
     try:
         async with AsyncUssoSession(
             sso_refresh_url=os.getenv("USSO_REFRESH_URL"),
