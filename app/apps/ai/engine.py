@@ -5,7 +5,7 @@ from .schemas import ImaginationStatus
 
 # Required data
 class EnginesDetails(BaseModel):
-    id: str
+    id: str | None
     error: str | None = None
     prompt: str
     status: ImaginationStatus
