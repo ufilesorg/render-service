@@ -3,9 +3,8 @@ import logging
 import os
 
 from metisai.async_metis import AsyncMetisBot
-from usso.async_session import AsyncUssoSession
-
 from server.config import Settings
+from usso.async_session import AsyncUssoSession
 from utils.texttools import backtick_formatter
 
 metis_client = AsyncMetisBot(
@@ -33,7 +32,8 @@ async def answer_messages(messages: dict, **kwargs):
 
 
 async def answer_with_ai(key, **kwargs) -> dict:
-    kwargs["lang"] = kwargs.get("lang", "Persian")
+    kwargs["source_language"] = kwargs.get("lang", "Persian")
+    kwargs["target_language"] = kwargs.get("target_language", "English")
     try:
         async with AsyncUssoSession(
             sso_refresh_url=os.getenv("USSO_REFRESH_URL"),
@@ -52,5 +52,5 @@ async def answer_with_ai(key, **kwargs) -> dict:
 
 
 async def translate(text: str) -> str:
-    resp: dict = await answer_with_ai("translate", text=text)
+    resp: dict = await answer_with_ai("graphic_translate", text=text)
     return resp.get("translated_text")

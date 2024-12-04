@@ -6,12 +6,6 @@ import uuid
 from datetime import datetime, timedelta
 
 import aiohttp
-from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
-from fastapi_mongo_base.tasks import TaskReference, TaskReferenceList, TaskStatusEnum
-from metisai.async_metis import AsyncMetisBot
-from PIL import Image
-from usso.async_session import AsyncUssoSession
-
 from apps.imagination.models import Imagination, ImaginationBulk
 from apps.imagination.schemas import (
     ImaginationEngines,
@@ -21,7 +15,12 @@ from apps.imagination.schemas import (
     ImagineSchema,
     ImagineWebhookData,
 )
+from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
+from fastapi_mongo_base.tasks import TaskReference, TaskReferenceList, TaskStatusEnum
+from metisai.async_metis import AsyncMetisBot
+from PIL import Image
 from server.config import Settings
+from usso.async_session import AsyncUssoSession
 from utils import ai, aionetwork, imagetools, ufiles
 
 
@@ -357,5 +356,6 @@ async def update_imagination_status(imagination: Imagination):
         )
     except Exception as e:
         imagination.status = ImaginationStatus.error
+        imagination.task_status = ImaginationStatus.error
         imagination.error = str(e)
         await imagination.save()

@@ -4,7 +4,6 @@ import logging
 from fastapi_mongo_base._utils.basic import try_except_wrapper
 from fastapi_mongo_base.models import OwnedEntity
 from fastapi_mongo_base.tasks import TaskStatusEnum
-
 from server.config import Settings
 
 from .schemas import (
