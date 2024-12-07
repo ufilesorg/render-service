@@ -1,12 +1,10 @@
 from datetime import datetime
-from typing import Literal
-from server.config import Settings
-
-from .engine import Engine, EnginesDetails
-from .schemas import ImaginationStatus
 
 from openai import OpenAI
 from openai.types import ImagesResponse
+
+from .engine import Engine, EnginesDetails
+from .schemas import ImaginationStatus
 
 
 class Dalle(Engine):

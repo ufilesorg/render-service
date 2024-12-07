@@ -183,7 +183,7 @@ class ImaginationEngines(str, Enum):
                 "9:16",
                 "9:21",
             },
-            ImaginationEngines.dalle: {"1:1",'7:4','4:7'},
+            ImaginationEngines.dalle: {"1:1", "7:4", "4:7"},
             ImaginationEngines.midjourney: {
                 "10:16",
                 "16:10",
