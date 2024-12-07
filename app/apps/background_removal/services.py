@@ -50,7 +50,7 @@ async def process_result(background_removal: BackgroundRemoval, generated_url: s
             uploaded_item = await upload_image(
                 client,
                 image,
-                image_name=f"{uuid.uuid4()}_{image.filename}",
+                image_name=f"bg_{image.filename}",
                 user_id=background_removal.user_id,
                 engine=background_removal.engine,
                 file_upload_dir="backgrounds_removal",
