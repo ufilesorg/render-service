@@ -1,49 +1,60 @@
+from datetime import datetime
 from typing import Literal
-
-from metisai.async_metis import AsyncMetisBot
-from metisai.metistypes import TaskResult
 from server.config import Settings
 
 from .engine import Engine, EnginesDetails
-from .schemas import ImaginationEngines, ImaginationStatus
+from .schemas import ImaginationStatus
 
-
-class DalleDetails(EnginesDetails):
-    session_id: str
+from openai import OpenAI
+from openai.types import ImagesResponse
 
 
 class Dalle(Engine):
     def __init__(self, item, **kwargs) -> None:
         super().__init__(item, **kwargs)
-        if item:
-            self.client = AsyncMetisBot(
-                api_key=Settings.METIS_API_KEY,
-                bot_id=ImaginationEngines.dalle.metis_bot_id,
+        if self.item:
+            self.client = OpenAI(
+                api_key="tpsg-CMsYsphOUwPaxzfIdoEA46aJf3Pu297",
+                base_url="https://api.metisai.ir/openai/v1",
             )
 
-    async def result(self, **kwargs) -> DalleDetails:
-        id = self._get_data("id")
-        session_id = self._get_data("session_id")
-        task = await self.client.retrieve_async_task(session_id, id)
-        return await self._result_to_details(task, task_id=id, session_id=session_id)
-
-    async def _request(self, **kwargs) -> DalleDetails:
-        self.item.prompt += f", in a {self.item.aspect_ratio} aspect ratio"
-        session = await self.client.create_session()
-        res = await self.client.send_message_async(
-            session, f"/imagine {self.item.prompt}"
-        )
-        task = await self.client.retrieve_async_task(session, res)
-        return await self._result_to_details(
-            task, task_id=res.taskId, session_id=session.id
+    async def result(self, **kwargs) -> EnginesDetails:
+        result = self.item.meta_data.get("result")
+        return (
+            EnginesDetails(**self.item.meta_data)
+            if result
+            else self._result_to_details(
+                ImagesResponse(
+                    created=int(datetime.now().timestamp()),
+                    data=[],
+                    error=f"Server error: " + self.item.meta_data.get("error")
+                    or "Imagination has no meta_data",
+                )
+            )
         )
 
-    def _status(self, status: Literal["RUNNING", "FINISHED", "FAILED"]):
+    async def _request(self, **kwargs) -> EnginesDetails:
+        response = self.client.images.generate(
+            prompt=self.item.prompt,
+            n=1,
+            model="dall-e-3",
+            size=self._get_size(),
+        )
+        return self._result_to_details(response)
+
+    def _status(self, response: ImagesResponse):
+        return (
+            ImaginationStatus.completed
+            if len(response.data) > 0
+            else ImaginationStatus.error
+        )
+
+    def _get_size(self):
         return {
-            "RUNNING": ImaginationStatus.processing,
-            "FINISHED": ImaginationStatus.completed,
-            "FAILED": ImaginationStatus.error,
-        }.get(status, ImaginationStatus.error)
+            "1:1": "1024x1024",
+            "7:4": "1792x1024",
+            "4:7": "1024x1792",
+        }.get(self.item.aspect_ratio)
 
     def validate(self, data):
         aspect_ratio_valid = data.aspect_ratio in self.engine.supported_aspect_ratios
@@ -54,23 +65,11 @@ class Dalle(Engine):
         )
         return aspect_ratio_valid, message
 
-    async def _result_to_details(self, task: TaskResult, **kwargs):
-        task_data = task.__dict__.copy()
-        session_id = kwargs.get("session_id")
-        task_id = kwargs.get("task_id")
-        status = self._status(task.status)
-        task_data.pop("status", None)
-        return DalleDetails(
-            **task_data,
-            id=task_id,
-            session_id=session_id,
-            status=status,
+    def _result_to_details(self, response: ImagesResponse):
+        return EnginesDetails(
+            id=None,
             prompt=self.item.prompt,
-            result=(
-                {"uri": task.message.attachments[0].content}
-                if task.message
-                and task.message.attachments
-                and len(task.message.attachments) > 0
-                else None
-            ),
+            error=str(response.error) if response.error else None,
+            status=self._status(response),
+            result=({"uri": response.data[0].url} if len(response.data) > 0 else None),
         )
