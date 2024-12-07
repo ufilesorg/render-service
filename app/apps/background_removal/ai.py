@@ -1,7 +1,7 @@
 import replicate
+import replicate.prediction
+from apps.ai.replicate_engine import Replicate, ReplicateDetails
 from replicate.identifier import ModelVersionIdentifier
-
-from .ai import Replicate, ReplicateDetails
 
 
 class ReplicateBackgroundRemoval(Replicate):
@@ -28,7 +28,7 @@ class ReplicateBackgroundRemoval(Replicate):
     async def _request(self, **kwargs) -> ReplicateDetails:
         prediction = replicate.predictions.create(
             version=self.application_name.version,
-            input={"image": self.item.image},
+            input={"image": self.item.image_url},
             # webhook=self.item.item_webhook_url,
             # webhook_events_filter=["start", "completed"],
         )

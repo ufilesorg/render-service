@@ -13,7 +13,7 @@ class BackgroundRemovalEngines(str, Enum):
     pollinations = "pollinations"
 
     def get_class(self, background_removal: Any):
-        from utils.background_removal import ReplicateBackgroundRemoval
+        from .ai import ReplicateBackgroundRemoval
 
         return {
             BackgroundRemovalEngines.cjwbw: lambda: ReplicateBackgroundRemoval(
@@ -51,13 +51,13 @@ class BackgroundRemovalEnginesSchema(BaseModel):
 
 
 class BackgroundRemovalCreateSchema(BaseModel):
-    engine: BackgroundRemovalEngines = BackgroundRemovalEngines.cjwbw
-    image: str
+    # engine: BackgroundRemovalEngines = BackgroundRemovalEngines.cjwbw
+    image_url: str
 
 
 class BackgroundRemovalSchema(TaskMixin, OwnedEntitySchema):
     engine: BackgroundRemovalEngines = BackgroundRemovalEngines.cjwbw
-    image: str | None = None
+    image_url: str | None = None
     status: ImaginationStatus = ImaginationStatus.draft
     result: ImagineResponse | None = None
 

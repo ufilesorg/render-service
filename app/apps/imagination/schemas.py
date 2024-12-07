@@ -102,7 +102,7 @@ class ImagineBulkSchema(TaskMixin, OwnedEntitySchema):
 class ImagineCreateBulkSchema(BaseModel):
     prompt: str | None = None
     enhance_prompt: bool = False
-    aspect_ratios: list[str] | None = None
+    aspect_ratios: list[str] = []
     engines: list[ImaginationEngines] = ImaginationEngines.bulk_engines
     webhook_url: str | None = None
 
@@ -110,7 +110,7 @@ class ImagineCreateBulkSchema(BaseModel):
     def validate_data(cls, values: "ImagineCreateBulkSchema"):
         values.aspect_ratios = (
             values.aspect_ratios
-            if len(values.aspect_ratios or []) == len(values.engines)
+            if len(values.aspect_ratios) == len(values.engines)
             else ["1:1" for _ in values.engines]
         )
         for ar, engine in zip(values.aspect_ratios, values.engines):

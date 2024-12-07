@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 import uuid
@@ -31,7 +30,11 @@ async def upload_image(
         filename=f"{file_upload_dir}/{image_bytes.name}",
         public_permission=json.dumps({"permission": ufiles.PermissionEnum.READ}),
         user_id=str(user_id),
-        meta_data={"engine": engine.value},
+        meta_data={
+            "engine": engine.value,
+            "width": image.width,
+            "height": image.height,
+        },
     )
 
 
@@ -55,8 +58,8 @@ async def process_result(background_removal: BackgroundRemoval, generated_url: s
 
         background_removal.result = ImagineResponse(
             url=uploaded_item.url,
-            width=uploaded_item.width,
-            height=uploaded_item.height,
+            width=image.width,
+            height=image.height,
         )
 
     except Exception as e:
@@ -108,8 +111,7 @@ async def background_removal_request(background_removal: BackgroundRemoval):
     await background_removal.save_report(f"Replicate has been requested.")
 
     # Create Short Polling process know the status of the request
-    new_task = asyncio.create_task(background_removal_update(background_removal))
-    return new_task
+    return await background_removal_update(background_removal)
 
 
 @try_except_wrapper
@@ -130,4 +132,4 @@ async def background_removal_update(background_removal: BackgroundRemoval, i=0):
     await process_background_removal_webhook(
         background_removal, BackgroundRemovalWebhookData(**result.model_dump())
     )
-    return asyncio.create_task(background_removal_update(background_removal, i + 1))
+    return await background_removal_update(background_removal, i + 1)

@@ -69,9 +69,15 @@ class BackgroundRemovalRouter(
         request: fastapi.Request,
         data: BackgroundRemovalCreateSchema,
         background_tasks: BackgroundTasks,
+        sync: bool = False,
     ):
         item: BackgroundRemoval = await super().create_item(request, data.model_dump())
-        background_tasks.add_task(item.start_processing)
+        item.task_status = "init"
+        if sync:
+            await item.start_processing()
+        else:
+            background_tasks.add_task(item.start_processing)
+
         return item
 
     async def webhook(

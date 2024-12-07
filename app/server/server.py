@@ -42,7 +42,7 @@ app = fastapi.FastAPI(
     },
     docs_url=f"{config.Settings.base_path}/docs",
     # openapi_url=f"{config.Settings.base_path}/openapi.json",
-    openapi_url="/v1/apps/imagine/openapi.json",
+    openapi_url=f"{config.Settings.base_path}/openapi.json",
     lifespan=lifespan,
 )
 
@@ -132,10 +132,10 @@ app.include_router(background_removal_router, prefix=f"{config.Settings.base_pat
 
 @app.get(f"{config.Settings.base_path}/health")
 async def health(request: fastapi.Request):
-    original_host = request.headers.get("x-original-host", "!not found!")
-    forwarded_host = request.headers.get("X-Forwarded-Host", "forwarded_host")
-    forwarded_proto = request.headers.get("X-Forwarded-Proto", "forwarded_proto")
-    forwarded_for = request.headers.get("X-Forwarded-For", "forwarded_for")
+    request.headers.get("x-original-host", "!not found!")
+    request.headers.get("X-Forwarded-Host", "forwarded_host")
+    request.headers.get("X-Forwarded-Proto", "forwarded_proto")
+    request.headers.get("X-Forwarded-For", "forwarded_for")
 
     return {
         "status": "up",
