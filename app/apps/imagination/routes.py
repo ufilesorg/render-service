@@ -27,57 +27,57 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
             schema=ImagineSchema,
             user_dependency=jwt_access_security,
             tags=["Imagination"],
-            prefix="",
+            prefix="/imagination",
         )
 
     def config_routes(self, **kwargs):
         self.router.add_api_route(
-            "/imagination",
+            "/",
             self.list_items,
             methods=["GET"],
             response_model=self.list_response_schema,
             status_code=200,
         )
         self.router.add_api_route(
-            "/imagination/",
+            "/",
             self.create_item,
             methods=["POST"],
             response_model=self.create_response_schema,
             status_code=201,
         )
         self.router.add_api_route(
-            "/imagination/{uid:uuid}",
+            "/{uid:uuid}",
             self.retrieve_item,
             methods=["GET"],
             response_model=self.retrieve_response_schema,
             status_code=200,
         )
         self.router.add_api_route(
-            "/imagination/{uid:uuid}",
+            "/{uid:uuid}",
             self.delete_item,
             methods=["DELETE"],
             # status_code=204,
             response_model=self.delete_response_schema,
         )
         self.router.add_api_route(
-            "/imagination/{uid:uuid}/webhook",
+            "/{uid:uuid}/webhook",
             self.webhook,
             methods=["POST"],
             status_code=200,
         )
-        self.router.add_api_route(
-            "/imagination/bulk",
-            self.create_bulk_item,
-            methods=["POST"],
-            response_model=ImagineBulkSchema,
-            status_code=201,
-        )
-        self.router.add_api_route(
-            "/imagination/bulk/{uid:uuid}",
-            self.retrieve_bulk_item,
-            methods=["GET"],
-            response_model=ImagineBulkSchema,
-        )
+        # self.router.add_api_route(
+        #     "/bulk",
+        #     self.create_bulk_item,
+        #     methods=["POST"],
+        #     response_model=ImagineBulkSchema,
+        #     status_code=201,
+        # )
+        # self.router.add_api_route(
+        #     "/bulk/{uid:uuid}",
+        #     self.retrieve_bulk_item,
+        #     methods=["GET"],
+        #     response_model=ImagineBulkSchema,
+        # )
 
     async def create_item(
         self,
@@ -103,6 +103,43 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
             return {"message": "Imagination has been cancelled."}
         await process_imagine_webhook(item, data)
         return {}
+
+
+class ImaginationBulkRouter(AbstractBaseRouter[ImaginationBulk, ImagineBulkSchema]):
+    def __init__(self):
+        super().__init__(
+            model=ImaginationBulk,
+            schema=ImagineBulkSchema,
+            user_dependency=None,
+            prefix="/imagination/bulk",
+            tags=["Imagination"],
+        )
+
+    def config_schemas(self, schema, **kwargs):
+        super().config_schemas(schema, **kwargs)
+        self.create_request_schema = ImagineCreateBulkSchema
+
+    def config_routes(self, **kwargs):
+        self.router.add_api_route(
+            "/",
+            self.list_items,
+            methods=["GET"],
+            response_model=self.list_response_schema,
+            status_code=200,
+        )
+        self.router.add_api_route(
+            "/",
+            self.create_bulk_item,
+            methods=["POST"],
+            response_model=self.create_response_schema,
+            status_code=201,
+        )
+        self.router.add_api_route(
+            "/{uid:uuid}",
+            self.retrieve_bulk_item,
+            methods=["GET"],
+            response_model=self.retrieve_response_schema,
+        )
 
     async def create_bulk_item(
         self,
@@ -149,6 +186,7 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
 
 
 router = ImaginationRouter().router
+bulk_router = ImaginationBulkRouter().router
 
 
 @router.get("/engines")
