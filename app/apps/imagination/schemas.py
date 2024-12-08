@@ -83,6 +83,10 @@ class ImagineBulkError(BaseModel):
 
 class ImagineBulkSchema(TaskMixin, OwnedEntitySchema):
     prompt: str | None = None
+    delineation: str | None = None
+    context: list[dict[str, Any]] | None = None
+    enhance_prompt: bool = False
+
     completed_at: datetime | None = None
     total_tasks: int = 0
     total_completed: int = 0
@@ -101,7 +105,10 @@ class ImagineBulkSchema(TaskMixin, OwnedEntitySchema):
 
 class ImagineCreateBulkSchema(BaseModel):
     prompt: str | None = None
+    delineation: str | None = None
+    context: list[dict[str, Any]] | None = None
     enhance_prompt: bool = False
+
     aspect_ratios: list[str] = []
     engines: list[ImaginationEngines] = ImaginationEngines.bulk_engines
     webhook_url: str | None = None
@@ -119,3 +126,9 @@ class ImagineCreateBulkSchema(BaseModel):
             data = ImagineCreateSchema(**data, engine=engine)
 
         return values
+
+    def get_combinations(
+        self,
+    ) -> Generator[tuple[str, ImaginationEngines], None, None]:
+        for ar, e in zip(self.aspect_ratios, self.engines):
+            yield ar, e

@@ -9,6 +9,7 @@ from server.config import Settings
 from .schemas import (
     ImaginationStatus,
     ImagineBulkError,
+    ImagineBulkResponse,
     ImagineBulkSchema,
     ImagineSchema,
 )
@@ -104,3 +105,30 @@ class ImaginationBulk(ImagineBulkSchema, OwnedEntity):
         from .services import imagine_bulk_result
 
         await imagine_bulk_result(self, imagination)
+
+    async def completed_tasks(self) -> list[Imagination]:
+        return await Imagination.find(
+            {
+                "bulk": {"$eq": str(self.id)},
+                "status": {"$eq": ImaginationStatus.completed},
+            }
+        ).to_list()
+
+    async def failed_tasks(self) -> list[Imagination]:
+        return await Imagination.find(
+            {
+                "bulk": {"$eq": str(self.id)},
+                "status": {"$eq": ImaginationStatus.error},
+            }
+        ).to_list()
+
+    async def collect_results(self):
+        data = await self.completed_tasks()
+        results = []
+        for item, result in (
+            (item, result) for item in data for result in item.results
+        ):
+            results.append(
+                ImagineBulkResponse(engine=item.engine, **result.model_dump())
+            )
+        return results

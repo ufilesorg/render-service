@@ -10,7 +10,6 @@ from apps.imagination.models import Imagination, ImaginationBulk
 from apps.imagination.schemas import (
     ImaginationEngines,
     ImaginationStatus,
-    ImagineBulkResponse,
     ImagineResponse,
     ImagineSchema,
     ImagineWebhookData,
@@ -202,7 +201,7 @@ async def request_imagine_metis(
     await bot.send_message_async(session, f"/imagine {imagination.prompt}")
 
 
-async def create_prompt(imagination: Imagination, enhance: bool = False):
+async def create_prompt(imagination: Imagination | ImaginationBulk):
     async def get_prompt_row(item: dict):
         return f'{item.get("topic", "")} {await ai.translate(item.get("value", ""))}'
 
@@ -222,10 +221,6 @@ async def create_prompt(imagination: Imagination, enhance: bool = False):
     # Create final prompt using user prompt and prompt properties
     prompt += ", " + ", ".join(context)
     prompt = prompt.strip(",. ")
-
-    if enhance:
-        # TODO: Enhance the prompt
-        pass
 
     return prompt
 
@@ -280,11 +275,32 @@ async def imagine_update(imagination: Imagination, i=0):
 
 
 @try_except_wrapper
+async def update_imagination_status(imagination: Imagination):
+    try:
+        if imagination.meta_data is None:
+            raise ValueError("Imagination has no meta_data.")
+
+        imagine_engine = imagination.engine.get_class(imagination)
+        result = await imagine_engine.result()
+        imagination.error = result.error
+        imagination.status = result.status
+        await process_imagine_webhook(
+            imagination, ImagineWebhookData(**result.model_dump())
+        )
+    except Exception as e:
+        imagination.status = ImaginationStatus.error
+        imagination.task_status = ImaginationStatus.error
+        imagination.error = str(e)
+        await imagination.save()
+
+
+@try_except_wrapper
 async def imagine_bulk_request(imagination_bulk: ImaginationBulk):
     imagination_bulk.task_references = TaskReferenceList(
         tasks=[],
         mode="parallel",
     )
+    imagination_bulk.prompt = await create_prompt(imagination_bulk)
     for aspect_ratio, engine in imagination_bulk.get_combinations():
         imagine = await Imagination.create_item(
             ImagineSchema(
@@ -292,6 +308,8 @@ async def imagine_bulk_request(imagination_bulk: ImaginationBulk):
                 bulk=str(imagination_bulk.id),
                 engine=engine,
                 prompt=imagination_bulk.prompt,
+                # delineation=imagination_bulk.delineation,
+                # context=imagination_bulk.context,
                 aspect_ratio=aspect_ratio,
                 mode="imagine",
             ).model_dump()
@@ -313,19 +331,11 @@ async def imagine_bulk_result(
     imagination_bulk: ImaginationBulk, imagination: Imagination
 ):
     await imagination.save()
-    data = await Imagination.find(
-        {
-            "bulk": {"$eq": str(imagination_bulk.id)},
-            "status": {"$eq": ImaginationStatus.completed},
-        }
-    ).to_list()
-    imagination_bulk.results = []
-    for item, result in ((item, result) for item in data for result in item.results):
-        imagination_bulk.results.append(
-            ImagineBulkResponse(engine=item.engine, **result.model_dump())
-        )
+    data = await imagination_bulk.completed_tasks()
+    imagination_bulk.results = await imagination_bulk.collect_results()
 
-    imagination_bulk.total_completed += 1
+    # imagination_bulk.total_completed += 1
+    imagination_bulk.total_completed = len(data)
     await imagination_bulk.save_report(f"Engine {imagination.engine.value} is ended.")
     await imagine_bulk_process(imagination_bulk)
 
@@ -333,29 +343,10 @@ async def imagine_bulk_result(
 @try_except_wrapper
 async def imagine_bulk_process(imagination_bulk: ImaginationBulk):
     if (
-        imagination_bulk.total_completed + imagination_bulk.total_failed
+        len(await imagination_bulk.completed_tasks())
+        + len(await imagination_bulk.failed_tasks())
         == imagination_bulk.total_tasks
     ):
         imagination_bulk.task_status = TaskStatusEnum.completed
         imagination_bulk.completed_at = datetime.now()
         await imagination_bulk.save_report(f"{imagination_bulk} ended.")
-
-
-@try_except_wrapper
-async def update_imagination_status(imagination: Imagination):
-    try:
-        if imagination.meta_data is None:
-            raise ValueError("Imagination has no meta_data.")
-
-        imagine_engine = imagination.engine.get_class(imagination)
-        result = await imagine_engine.result()
-        imagination.error = result.error
-        imagination.status = result.status
-        await process_imagine_webhook(
-            imagination, ImagineWebhookData(**result.model_dump())
-        )
-    except Exception as e:
-        imagination.status = ImaginationStatus.error
-        imagination.task_status = ImaginationStatus.error
-        imagination.error = str(e)
-        await imagination.save()

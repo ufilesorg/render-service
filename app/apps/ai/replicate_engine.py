@@ -17,6 +17,8 @@ class ReplicateDetails(EnginesDetails):
         "cjwbw/rembg",
         "lucataco/remove-bg",
         "pollinations/modnet",
+        "luma/photon",
+        "luma/photon-flash",
     ] = "ideogram-ai/ideogram-v2-turbo"
 
 
@@ -28,6 +30,8 @@ class Replicate(Engine):
             ImaginationEngines.flux_schnell: "black-forest-labs/flux-schnell",
             ImaginationEngines.flux_1_1: "black-forest-labs/flux-1.1-pro",
             ImaginationEngines.flux: "black-forest-labs/flux-schnell",
+            ImaginationEngines.photon: "luma/photon",
+            ImaginationEngines.photon_flash: "luma/photon-flash",
             ImaginationEngines.stability: "stability-ai/stable-diffusion-3",
         }[engine]
 

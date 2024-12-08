@@ -76,6 +76,8 @@ class ImaginationEngines(str, Enum):
     flux_1_1 = "flux_1.1"
     dalle = "dalle"
     flux = "flux"
+    photon = "photon"
+    photon_flash = "photon_flash"
     # leonardo = "leonardo"
 
     @property
@@ -83,8 +85,9 @@ class ImaginationEngines(str, Enum):
         return [
             ImaginationEngines.midjourney,
             ImaginationEngines.dalle,
-            ImaginationEngines.flux_schnell,
+            ImaginationEngines.flux_1_1,
             ImaginationEngines.ideogram,
+            ImaginationEngines.photon,
         ]
 
     @property
@@ -118,6 +121,11 @@ class ImaginationEngines(str, Enum):
             ImaginationEngines.flux_1_1: lambda: Replicate(
                 item=imagination, engine=self
             ),
+            ImaginationEngines.flux: lambda: Replicate(item=imagination, engine=self),
+            ImaginationEngines.photon: lambda: Replicate(item=imagination, engine=self),
+            ImaginationEngines.photon_flash: lambda: Replicate(
+                item=imagination, engine=self
+            ),
         }[self]()
 
     @property
@@ -130,6 +138,8 @@ class ImaginationEngines(str, Enum):
             ImaginationEngines.flux: "https://media.pixiee.io/v1/f/cf21c500-6e84-4915-a5d1-19b8f325a382/flux-icon.png?width=100",
             ImaginationEngines.stability: "https://media.pixiee.io/v1/f/6d0a2e82-7667-46ec-af33-0e557f16e356/stability-icon.png?width=100",
             ImaginationEngines.flux_1_1: "https://media.pixiee.io/v1/f/cf21c500-6e84-4915-a5d1-19b8f325a382/flux-icon.png?width=100",
+            ImaginationEngines.photon: "https://media.pixiee.io/v1/f/4701330c-aa98-4d86-91d4-982ff94d30f3/photon.png?width=100",
+            ImaginationEngines.photon_flash: "https://media.pixiee.io/v1/f/4701330c-aa98-4d86-91d4-982ff94d30f3/photon.png?width=100",
         }[self]
 
     @property
@@ -213,6 +223,24 @@ class ImaginationEngines(str, Enum):
                 "5:4",
                 "3:4",
                 "4:3",
+                "9:16",
+                "9:21",
+            },
+            ImaginationEngines.photon: {
+                "1:1",
+                "16:9",
+                "21:9",
+                "4:3",
+                "3:4",
+                "9:16",
+                "9:21",
+            },
+            ImaginationEngines.photon_flash: {
+                "1:1",
+                "16:9",
+                "21:9",
+                "4:3",
+                "3:4",
                 "9:16",
                 "9:21",
             },

@@ -27,40 +27,40 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
             schema=ImagineSchema,
             user_dependency=jwt_access_security,
             tags=["Imagination"],
-            prefix="/imagination",
+            prefix="",
         )
 
     def config_routes(self, **kwargs):
         self.router.add_api_route(
-            "/",
+            "/imagination/",
             self.list_items,
             methods=["GET"],
             response_model=self.list_response_schema,
             status_code=200,
         )
         self.router.add_api_route(
-            "/",
+            "/imagination/",
             self.create_item,
             methods=["POST"],
             response_model=self.create_response_schema,
             status_code=201,
         )
         self.router.add_api_route(
-            "/{uid:uuid}",
+            "/imagination/{uid:uuid}",
             self.retrieve_item,
             methods=["GET"],
             response_model=self.retrieve_response_schema,
             status_code=200,
         )
         self.router.add_api_route(
-            "/{uid:uuid}",
+            "/imagination/{uid:uuid}",
             self.delete_item,
             methods=["DELETE"],
             # status_code=204,
             response_model=self.delete_response_schema,
         )
         self.router.add_api_route(
-            "/{uid:uuid}/webhook",
+            "/imagination/{uid:uuid}/webhook",
             self.webhook,
             methods=["POST"],
             status_code=200,
@@ -110,7 +110,7 @@ class ImaginationBulkRouter(AbstractBaseRouter[ImaginationBulk, ImagineBulkSchem
         super().__init__(
             model=ImaginationBulk,
             schema=ImagineBulkSchema,
-            user_dependency=None,
+            user_dependency=jwt_access_security,
             prefix="/imagination/bulk",
             tags=["Imagination"],
         )
@@ -153,7 +153,7 @@ class ImaginationBulkRouter(AbstractBaseRouter[ImaginationBulk, ImagineBulkSchem
                 "user_id": user_id,
                 "task_status": TaskStatusEnum.init,
                 **data.model_dump(),
-                "total_tasks": len(data.engines),
+                "total_tasks": len([d for d in data.get_combinations()]),
             }
         )
         background_tasks.add_task(item.start_processing)
@@ -189,7 +189,7 @@ router = ImaginationRouter().router
 bulk_router = ImaginationBulkRouter().router
 
 
-@router.get("/engines")
+@router.get("/engines/", response_model=list[ImaginationEnginesSchema])
 async def engines():
     engines = [
         ImaginationEnginesSchema.from_model(engine) for engine in ImaginationEngines
