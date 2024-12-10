@@ -89,14 +89,7 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
     ):
         item: Imagination = await super().create_item(request, data.model_dump())
         item.task_status = "init"
-        
-        await Usages().create_usage(
-            UsageInput(
-                user_id=str(item.user_id),
-                meta_data={"imagination": str(item.uid)},
-                amount="1",
-            )
-        )
+        await Usages().create(item, 1)
         if sync:
             await item.start_processing()
         else:
