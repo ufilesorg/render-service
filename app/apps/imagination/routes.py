@@ -18,6 +18,7 @@ from .schemas import (
     ImagineWebhookData,
 )
 from .services import process_imagine_webhook
+from utils.usages import UsageInput, Usages
 
 
 class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
@@ -88,6 +89,14 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
     ):
         item: Imagination = await super().create_item(request, data.model_dump())
         item.task_status = "init"
+        
+        await Usages().create_usage(
+            UsageInput(
+                user_id=str(item.user_id),
+                meta_data={"imagination": str(item.uid)},
+                amount="1",
+            )
+        )
         if sync:
             await item.start_processing()
         else:
