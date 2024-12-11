@@ -88,9 +88,14 @@ class ImaginationRouter(AbstractBaseRouter[Imagination, ImagineSchema]):
         background_tasks: BackgroundTasks,
         sync: bool = False,
     ):
+        usage = Usages()
+        await usage.create(
+            await self.get_user_id(request),
+            4 if data.engine == ImaginationEngines.midjourney else 1,
+        )
         item: Imagination = await super().create_item(request, data.model_dump())
+        await usage.update(item)
         item.task_status = "init"
-        await Usages().create(item, 1)
         if sync:
             await item.start_processing()
         else:
