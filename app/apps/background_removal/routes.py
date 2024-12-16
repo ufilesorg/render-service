@@ -4,7 +4,6 @@ import fastapi
 from fastapi import BackgroundTasks
 from fastapi_mongo_base.routes import AbstractBaseRouter
 from usso.fastapi import jwt_access_security
-
 from utils.usages import Usages
 
 from .models import BackgroundRemoval

@@ -1,8 +1,7 @@
 import replicate
 import replicate.prediction
-from replicate.identifier import ModelVersionIdentifier
-
 from apps.ai.replicate_engine import Replicate, ReplicateDetails
+from replicate.identifier import ModelVersionIdentifier
 
 
 class ReplicateBackgroundRemoval(Replicate):
