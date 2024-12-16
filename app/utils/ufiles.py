@@ -81,7 +81,7 @@ class UFileItem(BaseModel):
     filehash: str | None = None
     filename: str
 
-    content_type: str = "image/webp"
+    content_type: str = "image/jpg"
     size: int = 4096
     deleted_at: datetime | None = None
 

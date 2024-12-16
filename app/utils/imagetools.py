@@ -141,16 +141,12 @@ def crop_image(image: Image.Image, sections=(2, 2), **kwargs) -> list[Image.Imag
     return parts
 
 
-def convert_to_webp_bytes(image: Image.Image, quality=None) -> BytesIO:
+def convert_to_jpg_bytes(image: Image.Image, quality=None) -> BytesIO:
     image_bytes = BytesIO()
     image.convert("RGB").save(
         image_bytes,
-        format="WebP",
+        format="JPEG",
         **{"quality": quality} if quality else {},
     )
     image_bytes.seek(0)
     return image_bytes
-
-
-def convert_to_webp(image: Image.Image, quality=None) -> Image.Image:
-    return Image.open(convert_to_webp_bytes(image, quality=quality))

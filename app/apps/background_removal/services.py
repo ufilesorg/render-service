@@ -22,8 +22,8 @@ async def upload_image(
     engine: BackgroundRemovalEngines = BackgroundRemovalEngines.cjwbw,
     file_upload_dir: str = "imaginations",
 ):
-    image_bytes = imagetools.convert_to_webp_bytes(image)
-    image_bytes.name = f"{image_name}.webp"
+    image_bytes = imagetools.convert_to_jpg_bytes(image)
+    image_bytes.name = f"{image_name}.jpg"
     return await ufiles.AsyncUFiles().upload_bytes_session(
         client,
         image_bytes,
