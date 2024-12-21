@@ -5,10 +5,9 @@ from contextlib import asynccontextmanager
 
 import fastapi
 import pydantic
-from core import exceptions
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi_mongo_base.core import db
+from fastapi_mongo_base.core import db, exceptions
 from json_advanced import dumps
 from ufaas_fastapi_business.core import middlewares
 from usso.exceptions import USSOException

@@ -20,9 +20,14 @@ async def upload_image(
     engine: BackgroundRemovalEngines = BackgroundRemovalEngines.cjwbw,
     file_upload_dir: str = "imaginations",
 ):
+    ufiles_client = ufiles.AsyncUFiles(
+        ufiles_base_url=Settings.UFILES_BASE_URL,
+        usso_base_url=Settings.USSO_BASE_URL,
+        api_key=Settings.UFILES_API_KEY,
+    )
     image_bytes = imagetools.convert_to_jpg_bytes(image)
     image_bytes.name = f"{image_name}.jpg"
-    return await ufiles.AsyncUFiles().upload_bytes(
+    return await ufiles_client.upload_bytes(
         image_bytes,
         filename=f"{file_upload_dir}/{image_bytes.name}",
         public_permission=json.dumps({"permission": ufiles.PermissionEnum.READ}),

@@ -2,7 +2,7 @@ import os
 import uuid
 
 import singleton
-from core.exceptions import BaseHTTPException
+from fastapi_mongo_base.core.exceptions import BaseHTTPException
 from fastapi_mongo_base.schemas import OwnedEntitySchema
 from pydantic import BaseModel
 from usso.session import AsyncUssoSession
