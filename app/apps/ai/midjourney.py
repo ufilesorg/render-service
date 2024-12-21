@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from typing import Any, Literal
 
-import aiohttp
+import httpx
 from pydantic import BaseModel
 
 from .engine import Engine, EnginesDetails
@@ -41,13 +41,11 @@ class Midjourney(Engine):
 
     async def result(self, **kwargs) -> MidjourneyDetails:
         id = self._get_data("id")
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                f"{self.api_url}/{id}", headers=self.headers
-            ) as response:
-                response.raise_for_status()
-                result = await response.json()
-                return await self._result_to_details(result)
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{self.api_url}/{id}", headers=self.headers)
+            response.raise_for_status()
+            result = response.json()
+            return await self._result_to_details(result)
 
     async def _request(self, **kwargs) -> MidjourneyDetails:
         self.item.prompt = self.item.prompt.strip(".").strip(",").strip()
@@ -62,13 +60,13 @@ class Midjourney(Engine):
             }
         )
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
                 url=self.api_url, headers=self.headers, data=payload
-            ) as response:
-                response.raise_for_status()
-                result = await response.json()
-                return await self._result_to_details(result)
+            )
+            response.raise_for_status()
+            result = response.json()
+            return await self._result_to_details(result)
 
     def validate(self, data):
         aspect_ratio_valid = data.aspect_ratio in self.engine.supported_aspect_ratios

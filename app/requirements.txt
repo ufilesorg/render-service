@@ -8,9 +8,9 @@ python-dotenv
 debugpy
 ipython
 
-aiohttp
 aiofiles
 aiocache
+httpx
 usso[fastapi]
 
 beanie
@@ -18,7 +18,9 @@ fastapi-mongo-base
 ufaas-fastapi-business
 
 apscheduler
-httpx
+pytz
+
+ufiles
 pillow
 
 langdetect

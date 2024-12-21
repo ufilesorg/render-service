@@ -2,20 +2,18 @@ import json
 import logging
 import uuid
 
-import aiohttp
+import ufiles
 from apps.imagination.schemas import ImagineResponse
-from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
+from fastapi_mongo_base.utils import aionetwork, basic
 from PIL import Image
 from server.config import Settings
-from usso.async_session import AsyncUssoSession
-from utils import aionetwork, imagetools, ufiles
+from utils import imagetools
 
 from .models import BackgroundRemoval
 from .schemas import BackgroundRemovalEngines, BackgroundRemovalWebhookData
 
 
 async def upload_image(
-    client: AsyncUssoSession | aiohttp.ClientSession,
     image: Image.Image,
     image_name: str,
     user_id: uuid.UUID,
@@ -24,8 +22,7 @@ async def upload_image(
 ):
     image_bytes = imagetools.convert_to_jpg_bytes(image)
     image_bytes.name = f"{image_name}.jpg"
-    return await ufiles.AsyncUFiles().upload_bytes_session(
-        client,
+    return await ufiles.AsyncUFiles().upload_bytes(
         image_bytes,
         filename=f"{file_upload_dir}/{image_bytes.name}",
         public_permission=json.dumps({"permission": ufiles.PermissionEnum.READ}),
@@ -43,18 +40,13 @@ async def process_result(background_removal: BackgroundRemoval, generated_url: s
         # Download the image
         image_bytes = await aionetwork.aio_request_binary(url=generated_url)
         image = Image.open(image_bytes)
-        async with AsyncUssoSession(
-            ufiles.AsyncUFiles().refresh_url, ufiles.AsyncUFiles().refresh_token
-        ) as client:
-            # Upload result images on ufiles
-            uploaded_item = await upload_image(
-                client,
-                image,
-                image_name=f"bg_{image.filename}",
-                user_id=background_removal.user_id,
-                engine=background_removal.engine,
-                file_upload_dir="backgrounds_removal",
-            )
+        uploaded_item = await upload_image(
+            image,
+            image_name=f"bg_{image.filename}",
+            user_id=background_removal.user_id,
+            engine=background_removal.engine,
+            file_upload_dir="backgrounds_removal",
+        )
 
         background_removal.result = ImagineResponse(
             url=uploaded_item.url,
@@ -94,7 +86,7 @@ async def process_background_removal_webhook(
     await background_removal.save_report(report)
 
 
-@try_except_wrapper
+@basic.try_except_wrapper
 async def background_removal_request(background_removal: BackgroundRemoval):
     # Get Engine class and validate it
     Item = background_removal.engine.get_class(background_removal)
@@ -114,8 +106,8 @@ async def background_removal_request(background_removal: BackgroundRemoval):
     return await background_removal_update(background_removal)
 
 
-@try_except_wrapper
-@delay_execution(Settings.update_time)
+@basic.try_except_wrapper
+@basic.delay_execution(Settings.update_time)
 async def background_removal_update(background_removal: BackgroundRemoval, i=0):
     # Stop Short polling when the request is finished
     if background_removal.status.is_done:

@@ -1,11 +1,10 @@
 import asyncio
 import json
 import logging
-import re
 import uuid
 from datetime import datetime, timedelta
 
-import aiohttp
+import ufiles
 from apps.imagination.models import Imagination, ImaginationBulk
 from apps.imagination.schemas import (
     ImaginationEngines,
@@ -14,31 +13,15 @@ from apps.imagination.schemas import (
     ImagineSchema,
     ImagineWebhookData,
 )
-from fastapi_mongo_base._utils.basic import delay_execution, try_except_wrapper
 from fastapi_mongo_base.tasks import TaskReference, TaskReferenceList, TaskStatusEnum
+from fastapi_mongo_base.utils import aionetwork, basic, texttools
 from metisai.async_metis import AsyncMetisBot
 from PIL import Image
 from server.config import Settings
-from usso.async_session import AsyncUssoSession
-from utils import ai, aionetwork, imagetools, ufiles
-
-
-def sanitize_filename(prompt: str):
-    # Remove invalid characters and replace spaces with underscores
-    # Valid characters: alphanumeric, underscores, and periods
-    prompt_parts = prompt.split(",")
-    prompt = prompt_parts[1] if len(prompt_parts) > 1 else prompt
-    prompt = prompt.strip()
-    position = prompt.find(" ", 80)
-    if position > 120 or position == -1:
-        position = 100
-    sanitized = re.sub(r"[^a-zA-Z0-9_. ]", "", prompt)
-    sanitized = sanitized.replace(" ", "_")  # Replace spaces with underscores
-    return sanitized[:position]  # Limit to 100 characters
+from utils import ai, imagetools
 
 
 async def upload_image(
-    client: AsyncUssoSession | aiohttp.ClientSession,
     image: Image.Image,
     image_name: str,
     user_id: uuid.UUID,
@@ -46,18 +29,19 @@ async def upload_image(
     engine: ImaginationEngines = ImaginationEngines.midjourney,
     file_upload_dir: str = "imaginations",
 ):
+    ufiles_client = ufiles.AsyncUFiles(
+        ufiles_base_url=Settings.UFILES_BASE_URL,
+        usso_base_url=Settings.USSO_BASE_URL,
+        api_key=Settings.UFILES_API_KEY,
+    )
     image_bytes = imagetools.convert_to_jpg_bytes(image)
     image_bytes.name = f"{image_name}.jpg"
-    return await ufiles.AsyncUFiles().upload_bytes_session(
-        client,
+    return await ufiles_client.upload_bytes(
         image_bytes,
         filename=f"{file_upload_dir}/{image_bytes.name}",
         public_permission=json.dumps({"permission": ufiles.PermissionEnum.READ}),
         user_id=str(user_id),
-        meta_data={
-            "prompt": prompt,
-            "engine": engine.value,
-        },
+        meta_data={"prompt": prompt, "engine": engine.value},
     )
 
 
@@ -68,51 +52,31 @@ async def upload_images(
     engine: ImaginationEngines = ImaginationEngines.midjourney,
     file_upload_dir="imaginations",
 ):
-    image_name = sanitize_filename(prompt)
+    image_name = texttools.sanitize_filename(prompt)
 
-    async with AsyncUssoSession(
-        ufiles.AsyncUFiles().refresh_url,
-        ufiles.AsyncUFiles().refresh_token,
-    ) as client:
-        uploaded_items = [
-            await upload_image(
-                client,
-                images[0],
-                image_name=f"{image_name}_{1}",
+    uploaded_items = [
+        await upload_image(
+            images[0],
+            image_name=f"{image_name}_{1}",
+            user_id=user_id,
+            prompt=prompt,
+            engine=engine,
+            file_upload_dir=file_upload_dir,
+        )
+    ]
+    uploaded_items += await asyncio.gather(
+        *[
+            upload_image(
+                image,
+                image_name=f"{image_name}_{i+2}",
                 user_id=user_id,
                 prompt=prompt,
                 engine=engine,
                 file_upload_dir=file_upload_dir,
             )
+            for i, image in enumerate(images[1:])
         ]
-        uploaded_items += await asyncio.gather(
-            *[
-                upload_image(
-                    client,
-                    image,
-                    image_name=f"{image_name}_{i+2}",
-                    user_id=user_id,
-                    prompt=prompt,
-                    engine=engine,
-                    file_upload_dir=file_upload_dir,
-                )
-                for i, image in enumerate(images[1:])
-            ]
-        )
-        # uploaded_items = await asyncio.gather(
-        #     *[
-        #         upload_image(
-        #             client,
-        #             image,
-        #             image_name=f"{image_name}_{i+1}",
-        #             user_id=user_id,
-        #             prompt=prompt,
-        #             engine=engine,
-        #             file_upload_dir=file_upload_dir,
-        #         )
-        #         for i, image in enumerate(images)
-        #     ]
-        # )
+    )
     return uploaded_items
 
 
@@ -145,7 +109,7 @@ async def process_result(imagination: Imagination, generated_url: str):
         import traceback
 
         traceback_str = "".join(traceback.format_tb(e.__traceback__))
-        logging.error(f"Error processing image: {e}\n{traceback_str}")
+        logging.error(f"Error processing image: \n{traceback_str}\n{e}")
 
     return
 
@@ -177,9 +141,8 @@ async def process_imagine_webhook(imagination: Imagination, data: ImagineWebhook
     await imagination.save_report(report)
 
     if data.status == "completed" and imagination.task_status != "completed":
-        logging.info(
-            f"{json.dumps(imagination.model_dump(), indent=2, ensure_ascii=False)},\n{json.dumps(data.model_dump(), indent=2, ensure_ascii=False)}"
-        )
+        logging.info(json.dumps(imagination.model_dump(), indent=2, ensure_ascii=False))
+        logging.info(json.dumps(data.model_dump(), indent=2, ensure_ascii=False))
 
     if not data.status.is_done and datetime.now() - imagination.created_at >= timedelta(
         minutes=10
@@ -225,7 +188,7 @@ async def create_prompt(imagination: Imagination | ImaginationBulk):
     return prompt
 
 
-@try_except_wrapper
+@basic.try_except_wrapper
 async def imagine_request(imagination: Imagination):
     # Get Engine class and validate it
     imagine_engine = imagination.engine.get_class(imagination)
@@ -251,8 +214,8 @@ async def imagine_request(imagination: Imagination):
     return await imagine_update(imagination)
 
 
-@try_except_wrapper
-@delay_execution(Settings.update_time)
+@basic.try_except_wrapper
+@basic.delay_execution(Settings.update_time)
 async def imagine_update(imagination: Imagination, i=0):
     imagine_engine = imagination.engine.get_class(imagination)
 
@@ -274,7 +237,7 @@ async def imagine_update(imagination: Imagination, i=0):
     return await imagine_update(imagination, i + 1)
 
 
-@try_except_wrapper
+@basic.try_except_wrapper
 async def update_imagination_status(imagination: Imagination):
     try:
         if imagination.meta_data is None:
@@ -294,7 +257,7 @@ async def update_imagination_status(imagination: Imagination):
         await imagination.save()
 
 
-@try_except_wrapper
+@basic.try_except_wrapper
 async def imagine_bulk_request(imagination_bulk: ImaginationBulk):
     imagination_bulk.task_references = TaskReferenceList(
         tasks=[],
@@ -320,27 +283,27 @@ async def imagine_bulk_request(imagination_bulk: ImaginationBulk):
 
     imagination_bulk.task_status = TaskStatusEnum.processing
     await imagination_bulk.save_report(f"Bulk task was ordered.")
-    task_items = [
+    task_items: list[Imagination] = [
         await task.get_task_item() for task in imagination_bulk.task_references.tasks
     ]
     await asyncio.gather(*[task.start_processing() for task in task_items])
 
 
-@try_except_wrapper
+@basic.try_except_wrapper
 async def imagine_bulk_result(
     imagination_bulk: ImaginationBulk, imagination: Imagination
 ):
     await imagination.save()
-    data = await imagination_bulk.completed_tasks()
+    completed_tasks = await imagination_bulk.completed_tasks()
     imagination_bulk.results = await imagination_bulk.collect_results()
 
     # imagination_bulk.total_completed += 1
-    imagination_bulk.total_completed = len(data)
+    imagination_bulk.total_completed = len(completed_tasks)
     await imagination_bulk.save_report(f"Engine {imagination.engine.value} is ended.")
     await imagine_bulk_process(imagination_bulk)
 
 
-@try_except_wrapper
+@basic.try_except_wrapper
 async def imagine_bulk_process(imagination_bulk: ImaginationBulk):
     if (
         len(await imagination_bulk.completed_tasks())

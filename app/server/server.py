@@ -8,17 +8,19 @@ import pydantic
 from core import exceptions
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi_mongo_base.core import db
 from json_advanced import dumps
+from ufaas_fastapi_business.core import middlewares
 from usso.exceptions import USSOException
 
-from . import config, db, middlewares, worker
+from . import config, worker
 
 
 @asynccontextmanager
 async def lifespan(app: fastapi.FastAPI):  # type: ignore
     """Initialize application services."""
     config.Settings().config_logger()
-    await db.init_db()
+    await db.init_mongo_db()
     app.state.worker = asyncio.create_task(worker.worker())
 
     logging.info("Startup complete")

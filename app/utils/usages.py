@@ -1,12 +1,11 @@
 import os
 import uuid
 
-import aiohttp
 import singleton
 from core.exceptions import BaseHTTPException
 from fastapi_mongo_base.schemas import OwnedEntitySchema
 from pydantic import BaseModel
-from usso.async_session import AsyncUssoSession
+from usso.session import AsyncUssoSession
 
 
 class UsageInput(BaseModel):
@@ -27,36 +26,37 @@ class Usages(metaclass=singleton.Singleton):
         self.upload_url = f"{self.base_url}/usages/"
 
     async def create(self, user_id: str | uuid.UUID, amount: int = 1):
+        return
         async with AsyncUssoSession(self.refresh_url, self.refresh_token) as client:
             return await self.create_usage_session(
                 client, UsageInput(user_id=str(user_id), amount=amount)
             )
 
     async def update(self, item: OwnedEntitySchema):
+        return
         self.item.meta_data = {"uid": item.uid}
         async with AsyncUssoSession(self.refresh_url, self.refresh_token) as client:
             return await self.update_usage_session(client)
 
-    async def create_usage_session(
-        self, client: aiohttp.ClientSession, data: UsageInput
-    ):
-        async with client.post(
-            self.upload_url, json=data.model_dump(mode="json")
-        ) as response:
-            result = await response.json()
-            try:
-                response.raise_for_status()
-                self.item = UsageInput(**result)
-            except Exception:
-                raise BaseHTTPException(
-                    status_code=response.status,
-                    error=result["error"] or "",
-                    message=result["message"] or "",
-                )
-
-    async def update_usage_session(self, client: aiohttp.ClientSession):
-        async with client.patch(
-            f"{self.upload_url}{self.item.uid}", json=self.item.model_dump(mode="json")
-        ) as response:
-            result = await response.json()
+    async def create_usage_session(self, client: AsyncUssoSession, data: UsageInput):
+        try:
+            response = await client.post(
+                self.upload_url, json=data.model_dump(mode="json")
+            )
+            response.raise_for_status()
+            result = response.json()
             self.item = UsageInput(**result)
+        except Exception:
+            raise BaseHTTPException(
+                status_code=response.status,
+                error=result["error"] or "",
+                message=result["message"] or "",
+            )
+
+    async def update_usage_session(self, client: AsyncUssoSession):
+        response = await client.patch(
+            f"{self.upload_url}{self.item.uid}", json=self.item.model_dump(mode="json")
+        )
+        response.raise_for_status()
+        result = response.json()
+        self.item = UsageInput(**result)

@@ -1,9 +1,9 @@
 import asyncio
 import logging
 
-from fastapi_mongo_base._utils.basic import try_except_wrapper
 from fastapi_mongo_base.models import OwnedEntity
 from fastapi_mongo_base.tasks import TaskStatusEnum
+from fastapi_mongo_base.utils.basic import try_except_wrapper
 from server.config import Settings
 
 from .schemas import (
@@ -123,12 +123,11 @@ class ImaginationBulk(ImagineBulkSchema, OwnedEntity):
         ).to_list()
 
     async def collect_results(self):
-        data = await self.completed_tasks()
+        completed_tasks = await self.completed_tasks()
         results = []
-        for item, result in (
-            (item, result) for item in data for result in item.results
-        ):
-            results.append(
-                ImagineBulkResponse(engine=item.engine, **result.model_dump())
-            )
+        for item in completed_tasks:
+            for result in item.results:
+                results.append(
+                    ImagineBulkResponse(engine=item.engine, **result.model_dump())
+                )
         return results
