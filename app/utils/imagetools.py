@@ -1,7 +1,9 @@
+import base64
 import itertools
 from fractions import Fraction
 from io import BytesIO
 
+import httpx
 from PIL import Image
 
 
@@ -150,3 +152,25 @@ def convert_to_jpg_bytes(image: Image.Image, quality=None) -> BytesIO:
     )
     image_bytes.seek(0)
     return image_bytes
+
+
+async def get_image(image_url: str) -> Image.Image:
+    async with httpx.AsyncClient() as client:
+        r = await client.get(image_url)
+        r.raise_for_status()
+
+    return Image.open(BytesIO(r.content))
+
+
+async def get_image_base64(image_url: str) -> str:
+    image = await get_image(image_url)
+    buffered = BytesIO()
+    image.save(buffered, format="PNG")
+    base64_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    return f"data:image/png;base64,{base64_str}"
+
+
+def base64_to_image(base64_str: str) -> Image.Image:
+    encoded = base64_str.split(",")[1]
+    buffered = BytesIO(base64.b64decode(encoded))
+    return Image.open(buffered)

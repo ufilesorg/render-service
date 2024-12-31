@@ -21,9 +21,7 @@ pytz
 pillow
 
 ufiles
+ufaas
 usso[fastapi]
 
-langdetect
-openai
-metisai
-replicate
+Jinja2
