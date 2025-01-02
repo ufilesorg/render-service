@@ -4,9 +4,9 @@ import logging
 import uuid
 
 import httpx
+import jinja2
 import ufiles
 from apps.template.models import Template
-import jinja2
 from PIL import Image
 from server.config import Settings
 from utils import imagetools
@@ -44,7 +44,7 @@ async def render_mwj(mwj: dict) -> Image.Image:
     # logging.info(f"Rendering mwj: {mwj}")
     with open("logs/mwj.json", "w") as f:
         json.dump(mwj, f, indent=4, ensure_ascii=False)
-    
+
     async with httpx.AsyncClient() as client:
         r = await client.post(
             Settings.MWJ_RENDER_URL,
