@@ -23,3 +23,4 @@ class Settings(BaseSettings):
     USSO_BASE_URL: str = os.getenv("USSO_URL")
 
     MWJ_RENDER_URL: str = os.getenv("MWJ_RENDER_URL", "https://render.pixiee.io/render")
+    RENDER_API_KEY: str = os.getenv("RENDER_API_KEY")

@@ -44,12 +44,13 @@ async def render_mwj(mwj: dict) -> Image.Image:
     # logging.info(f"Rendering mwj: {mwj}")
     with open("logs/mwj.json", "w") as f:
         json.dump(mwj, f, indent=4, ensure_ascii=False)
-    import requests
-
-    r = requests.post(Settings.MWJ_RENDER_URL, json=mwj)
-    logging.info(r.status_code)
+    
     async with httpx.AsyncClient() as client:
-        r = await client.post(Settings.MWJ_RENDER_URL, json=mwj)
+        r = await client.post(
+            Settings.MWJ_RENDER_URL,
+            json=mwj,
+            headers={"x-api-key": Settings.RENDER_API_KEY},
+        )
         r.raise_for_status()
 
     base64_str = r.json().get("result")
