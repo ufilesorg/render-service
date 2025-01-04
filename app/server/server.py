@@ -4,6 +4,6 @@ from fastapi_mongo_base.core import app_factory
 
 from . import config
 
-app = app_factory.create_app(original_host_middleware=True)
+app = app_factory.create_app(settings=config.Settings(), original_host_middleware=True)
 app.include_router(render_router, prefix=f"{config.Settings.base_path}")
 app.include_router(template_router, prefix=f"{config.Settings.base_path}")
