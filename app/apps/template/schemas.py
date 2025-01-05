@@ -61,3 +61,14 @@ class TemplateSchema(TemplateCreateSchema, BaseEntitySchema):
     render_template_name: str | None = None
     form_fields: list[FieldSchema] = []
     assist_data: dict | None = None
+
+
+class TemplateGroupCreateSchema(BaseModel):
+    name: str
+    template_names: list[str] = []
+    description: str | None = None
+    category: str = "general"
+
+
+class TemplateGroupSchema(TemplateGroupCreateSchema, BaseEntitySchema):
+    pass

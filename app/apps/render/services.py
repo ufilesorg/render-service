@@ -6,12 +6,13 @@ import uuid
 import httpx
 import jinja2
 import ufiles
-from apps.template.models import Template
+from apps.template.models import Template, TemplateGroup
+from fastapi_mongo_base.utils import texttools
 from PIL import Image
 from server.config import Settings
 from utils import imagetools
 
-from .models import Render
+from .models import Render, RenderGroup
 from .schemas import RenderResult
 
 
@@ -58,23 +59,6 @@ async def render_mwj(mwj: dict) -> Image.Image:
     return imagetools.base64_to_image(base64_str)
 
 
-async def render_bulk(data: list[dict]) -> list[Image.Image]:
-    with open("logs/mwj.json", "w") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
-    async with httpx.AsyncClient() as client:
-        r = await client.post(
-            f"{Settings.MWJ_RENDER_URL}/bulk",
-            json=json.loads({"templates": data}),
-            headers={"x-api-key": Settings.RENDER_API_KEY},
-        )
-        r.raise_for_status()
-    renders = r.json().get("results")
-    output = []
-    for render in renders:
-        output.append(imagetools.base64_to_image(render))
-    return output
-
-
 async def fill_render_template_data(template_data: str, data: dict) -> dict:
     jinja_template = jinja2.Template(template_data)
     text = jinja_template.render(**data)
@@ -91,7 +75,7 @@ async def get_template_data(template_name: str) -> dict:
     return r.text
 
 
-async def process_render(render: Render) -> str:
+async def process_render(render: Render) -> Render:
     template_data = await get_template_data(render.template_name)
     # template_data =
     data = render.texts.copy()
@@ -121,35 +105,69 @@ async def process_render(render: Render) -> str:
     return render
 
 
-async def process_render_bulk(render: Render) -> list[str]:
-    template_data = await get_template_data(render.template_name)
-    # template_data =
-    data = render.texts.copy()
-    tasks = []
-    for value in render.images.values():
-        tasks.append(imagetools.get_image_base64(value))
+async def render_bulk(data: list[dict]) -> list[Image.Image]:
+    with open("logs/mwj.json", "w") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+    async with httpx.AsyncClient() as client:
+        r = await client.post(
+            f"{Settings.MWJ_RENDER_URL}/bulk",
+            json=json.loads({"templates": data}),
+            headers={"x-api-key": Settings.RENDER_API_KEY},
+        )
+        r.raise_for_status()
+    renders = r.json().get("results")
+    output = []
+    for render in renders:
+        output.append(imagetools.base64_to_image(render))
+    return output
 
-    images = await asyncio.gather(*tasks)
-    for key, image in zip(render.images.keys(), images):
-        data[key] = image
 
-    mwj = await fill_render_template_data(template_data, data)
-    # TODO make it multiperimages
-    input = [mwj]
-    result_images = await render_bulk(input)
+async def process_render_bulk(render_group: RenderGroup) -> RenderGroup:
+    template_group = await TemplateGroup.get_by_name(render_group.group_name)
+
+    rendering_templates = []
+    for template_name in template_group.template_names:
+        # render = Render(
+        #     template_name=template_name,
+        #     user_id=render_group.user_id,
+        #     texts=render_group.texts,
+        #     fonts=render_group.fonts,
+        #     images=render_group.images,
+        #     logo=render_group.logo,
+        #     colors=render_group.colors,
+        #     meta_data=render_group.meta_data,
+        # )
+        # render = await process_render(render)
+        template_data = await get_template_data(template_name)
+        data = render_group.texts.copy()
+        tasks = []
+        for value in render_group.images.values():
+            tasks.append(imagetools.get_image_base64(value))
+
+        images = await asyncio.gather(*tasks)
+        for key, image in zip(render_group.images.keys(), images):
+            data[key] = image
+
+        mwj = await fill_render_template_data(template_data, data)
+        rendering_templates.append(mwj)
+
+    result_images = await render_bulk(rendering_templates)
+
     for result_image in result_images:
+        width, height = result_image.size
+        basename = texttools.sanitize_filename(list(render_group.texts.values()[0]))
         image_ufile = await upload_image(
             result_image,
-            image_name=f"{render.id}.{uuid.uuid4()}.png",
-            user_id=render.user_id,
+            image_name=f"{basename}_{width}x{height}.jpg",
+            user_id=render_group.user_id,
             file_upload_dir="renders",
         )
-        render.results.append(
+        render_group.results.append(
             RenderResult(
                 url=image_ufile.url,
                 width=result_image.width,
                 height=result_image.height,
             )
         )
-    await render.save()
-    return render
+    await render_group.save()
+    return render_group
