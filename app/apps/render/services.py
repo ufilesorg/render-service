@@ -58,6 +58,23 @@ async def render_mwj(mwj: dict) -> Image.Image:
     return imagetools.base64_to_image(base64_str)
 
 
+async def render_bulk(data: list[dict]) -> list[Image.Image]:
+    with open("logs/mwj.json", "w") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+    async with httpx.AsyncClient() as client:
+        r = await client.post(
+            f"{Settings.MWJ_RENDER_URL}/bulk",
+            json=json.loads({"templates": data}),
+            headers={"x-api-key": Settings.RENDER_API_KEY},
+        )
+        r.raise_for_status()
+    renders = r.json().get("results")
+    output = []
+    for render in renders:
+        output.append(imagetools.base64_to_image(render))
+    return output
+
+
 async def fill_render_template_data(template_data: str, data: dict) -> dict:
     jinja_template = jinja2.Template(template_data)
     text = jinja_template.render(**data)
@@ -100,5 +117,39 @@ async def process_render(render: Render) -> str:
             url=image_ufile.url, width=result_image.width, height=result_image.height
         )
     )
+    await render.save()
+    return render
+
+
+async def process_render_bulk(render: Render) -> list[str]:
+    template_data = await get_template_data(render.template_name)
+    # template_data =
+    data = render.texts.copy()
+    tasks = []
+    for value in render.images.values():
+        tasks.append(imagetools.get_image_base64(value))
+
+    images = await asyncio.gather(*tasks)
+    for key, image in zip(render.images.keys(), images):
+        data[key] = image
+
+    mwj = await fill_render_template_data(template_data, data)
+    # TODO make it multiperimages
+    input = [mwj]
+    result_images = await render_bulk(input)
+    for result_image in result_images:
+        image_ufile = await upload_image(
+            result_image,
+            image_name=f"{render.id}.{uuid.uuid4()}.png",
+            user_id=render.user_id,
+            file_upload_dir="renders",
+        )
+        render.results.append(
+            RenderResult(
+                url=image_ufile.url,
+                width=result_image.width,
+                height=result_image.height,
+            )
+        )
     await render.save()
     return render
