@@ -75,8 +75,10 @@ async def get_template_data(template_name: str) -> dict:
     return r.text
 
 
-async def process_render(render: Render) -> Render:
-    template_data = await get_template_data(render.template_name)
+async def rendering_template_data(
+    template_name: str, render: Render | RenderGroup
+) -> dict:
+    template_data = await get_template_data(template_name)
     # template_data =
     data = render.texts.copy()
     tasks = []
@@ -88,6 +90,11 @@ async def process_render(render: Render) -> Render:
         data[key] = image
 
     mwj = await fill_render_template_data(template_data, data)
+    return mwj
+
+
+async def process_render(render: Render) -> Render:
+    mwj = await rendering_template_data(render.template_name, render)
 
     result_image = await render_mwj(mwj)
     image_ufile = await upload_image(
@@ -122,52 +129,46 @@ async def render_bulk(data: list[dict]) -> list[Image.Image]:
     return output
 
 
+async def upload_image_result(
+    result_image: Image.Image, basename: str, user_id: uuid.UUID
+):
+    width, height = result_image.size
+    image_ufile = await upload_image(
+        result_image,
+        image_name=f"{basename}_{width}x{height}.png",
+        user_id=user_id,
+        file_upload_dir="renders",
+    )
+    return RenderResult(
+        url=image_ufile.url,
+        width=width,
+        height=height,
+    )
+
+
 async def process_render_bulk(render_group: RenderGroup) -> RenderGroup:
     template_group = await TemplateGroup.get_by_name(render_group.group_name)
 
-    rendering_templates = []
-    for template_name in template_group.template_names:
-        # render = Render(
-        #     template_name=template_name,
-        #     user_id=render_group.user_id,
-        #     texts=render_group.texts,
-        #     fonts=render_group.fonts,
-        #     images=render_group.images,
-        #     logo=render_group.logo,
-        #     colors=render_group.colors,
-        #     meta_data=render_group.meta_data,
-        # )
-        # render = await process_render(render)
-        template_data = await get_template_data(template_name)
-        data = render_group.texts.copy()
-        tasks = []
-        for value in render_group.images.values():
-            tasks.append(imagetools.get_image_base64(value))
-
-        images = await asyncio.gather(*tasks)
-        for key, image in zip(render_group.images.keys(), images):
-            data[key] = image
-
-        mwj = await fill_render_template_data(template_data, data)
-        rendering_templates.append(mwj)
+    rendering_templates = await asyncio.gather(
+        *[
+            rendering_template_data(template_name, render_group)
+            for template_name in template_group.template_names
+        ]
+    )
 
     result_images = await render_bulk(rendering_templates)
 
-    for result_image in result_images:
-        width, height = result_image.size
-        basename = texttools.sanitize_filename(list(render_group.texts.values()[0]))
-        image_ufile = await upload_image(
-            result_image,
-            image_name=f"{basename}_{width}x{height}.jpg",
-            user_id=render_group.user_id,
-            file_upload_dir="renders",
-        )
-        render_group.results.append(
-            RenderResult(
-                url=image_ufile.url,
-                width=result_image.width,
-                height=result_image.height,
-            )
-        )
+    basename = texttools.sanitize_filename(list(render_group.texts.values()[0]))
+
+    render_group.results.append(
+        await upload_image_result(result_images[0], basename, render_group.user_id)
+    )
+    others = await asyncio.gather(
+        *[
+            upload_image_result(result_image, basename, render_group.user_id)
+            for result_image in result_images[1:]
+        ]
+    )
+    render_group.results.extend(others)
     await render_group.save()
     return render_group

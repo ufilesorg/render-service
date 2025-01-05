@@ -39,4 +39,4 @@ class RenderGroupCreateSchema(BaseModel):
 
 
 class RenderGroupSchema(RenderGroupCreateSchema, OwnedEntitySchema):
-    renders: list[RenderSchema] = []
+    results: list[RenderSchema] = []
