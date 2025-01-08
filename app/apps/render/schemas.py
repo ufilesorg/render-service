@@ -5,7 +5,7 @@ from pydantic import BaseModel, model_validator
 class RenderCreateSchema(BaseModel):
     template_name: str
     texts: dict[str, str] = {}
-    fonts: list[str] | str = "Vazirmatn"
+    fonts: list[str] = ["Vazirmatn"]
     images: dict[str, str] = {}
     logo: str | None = None
     colors: list[str] = []

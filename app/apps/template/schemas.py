@@ -34,6 +34,7 @@ class FieldSchema(BaseEntitySchema):
     values: list[str] | None = None
     validation: str | None = None  # regex
     page: Literal["content", "image", "brand"] = "content"
+    default: str | None = None
 
 
 class TemplateCreateSchema(BaseModel):
@@ -53,6 +54,9 @@ class TemplateCreateSchema(BaseModel):
     category: str = "general"
 
     license: Literal["free", "paid"] = "free"
+
+    colors: list[str] = []
+    fonts: list[str] = []
 
 
 class TemplateSchema(TemplateCreateSchema, BaseEntitySchema):

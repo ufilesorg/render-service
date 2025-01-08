@@ -2,8 +2,10 @@ import base64
 import itertools
 from fractions import Fraction
 from io import BytesIO
+from typing import Literal
 
 import httpx
+from aiocache import cached
 from PIL import Image
 
 
@@ -115,7 +117,12 @@ def get_aspect_ratio_str(width: int, height: int) -> str:
     return f"{fr.denominator}:{fr.numerator}"
 
 
-def resize_image(image: Image.Image, new_width=384, new_height=None) -> Image.Image:
+def resize_image(
+    image: Image.Image | BytesIO, new_width=384, new_height=None
+) -> Image.Image:
+    if isinstance(image, BytesIO):
+        image = Image.open(image)
+
     if new_width is None and new_height is None:
         return image
 
@@ -131,7 +138,7 @@ def resize_image(image: Image.Image, new_width=384, new_height=None) -> Image.Im
     return resized_image
 
 
-def crop_image(image: Image.Image, sections=(2, 2), **kwargs) -> list[Image.Image]:
+def split_image(image: Image.Image, sections=(2, 2), **kwargs) -> list[Image.Image]:
     parts = []
     for i, j in itertools.product(range(sections[0]), range(sections[1])):
         x = j * image.width // sections[0]
@@ -143,34 +150,101 @@ def crop_image(image: Image.Image, sections=(2, 2), **kwargs) -> list[Image.Imag
     return parts
 
 
-def convert_to_jpg_bytes(image: Image.Image, quality=None) -> BytesIO:
+def convert_image_bytes(
+    image: Image.Image,
+    format: Literal["JPEG", "PNG", "WEBP", "BMP", "GIF"] = "JPEG",
+    quality=None,
+) -> BytesIO:
     image_bytes = BytesIO()
-    image.convert("RGB").save(
+    color_mode = "RGB" if format != "PNG" else "RGBA"
+    image.convert(color_mode).save(
         image_bytes,
-        format="JPEG",
+        format=format,
         **{"quality": quality} if quality else {},
     )
     image_bytes.seek(0)
     return image_bytes
 
 
-async def get_image(image_url: str) -> Image.Image:
-    async with httpx.AsyncClient() as client:
-        r = await client.get(image_url)
-        r.raise_for_status()
+def strip_metadata(image: Image.Image) -> Image.Image:
+    """Strip metadata from the image by re-creating it in memory."""
+    stripped_buffer = BytesIO()
+    image.convert("RGB").save(stripped_buffer, format="JPEG")
+    stripped_buffer.seek(0)
+    return Image.open(stripped_buffer)
 
-    return Image.open(BytesIO(r.content))
 
-
-async def get_image_base64(image_url: str) -> str:
-    image = await get_image(image_url)
-    buffered = BytesIO()
-    image.save(buffered, format="PNG")
+def image_to_base64(
+    image: Image.Image,
+    format: Literal["JPEG", "PNG", "WEBP", "BMP", "GIF"] = "JPEG",
+    quality: int = 90,
+) -> str:
+    buffered = convert_image_bytes(image, format, quality)
     base64_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-    return f"data:image/png;base64,{base64_str}"
+    return f"data:image/{format};base64,{base64_str}"
 
 
-def base64_to_image(base64_str: str) -> Image.Image:
-    encoded = base64_str.split(",")[1]
+def load_from_base64(encoded: str) -> Image.Image:
+    """Load an image from a base64 encoded string."""
+    encoded = encoded.split(",")[1]
+    encoded += "=" * (4 - len(encoded) % 4)
     buffered = BytesIO(base64.b64decode(encoded))
     return Image.open(buffered)
+
+
+async def load_from_url(url: str) -> Image.Image:
+    """Load an image from a URL."""
+    async with httpx.AsyncClient() as client:
+        r = await client.get(url)
+        r.raise_for_status()
+    buffered = BytesIO(r.content)
+    return Image.open(buffered)
+
+
+def compress_image(image: Image.Image, max_size_kb: int) -> Image.Image:
+    """Compress image to fit within max_size_kb."""
+    while True:
+        buffered = BytesIO()
+        image.save(buffered, format="JPEG", optimize=True, quality=85)
+        encoded = base64.b64encode(buffered.getvalue()).decode()
+        if len(encoded) <= max_size_kb * 1024:
+            break
+        new_width = int(image.width * 4 / 5)
+        new_height = int(image.height * 4 / 5)
+        image = resize_image(image, new_width, new_height)
+    return image
+
+
+@cached(ttl=60 * 60 * 24)
+async def download_image(
+    url: str, max_width: int | None = None, max_size_kb: int | None = None
+) -> Image.Image:
+    """Fetch, resize, remove metadata, and compress an image to fit the specified constraints."""
+    # Load image from either base64 or URL
+    image = (
+        load_from_base64(url)
+        if url.startswith("data:image")
+        else await load_from_url(url)
+    )
+
+    # Prepare image (convert to RGB and strip metadata)
+    image = strip_metadata(image)
+
+    if max_size_kb is None and max_width is None:
+        return image
+
+    # Resize if needed
+    image = resize_image(image, max_width)
+
+    # Compress if needed
+    if max_size_kb is not None:
+        image = compress_image(image, max_size_kb)
+
+    return image
+
+
+async def download_image_base64(
+    url: str, max_width: int | None = None, max_size_kb: int | None = None
+) -> str:
+    image = await download_image(url, max_width, max_size_kb)
+    return image_to_base64(image)

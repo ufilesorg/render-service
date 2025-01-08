@@ -1,6 +1,5 @@
 import asyncio
 import json
-import logging
 import uuid
 
 import httpx
@@ -27,7 +26,7 @@ async def upload_image(
         usso_base_url=Settings.USSO_BASE_URL,
         api_key=Settings.UFILES_API_KEY,
     )
-    image_bytes = imagetools.convert_to_jpg_bytes(image)
+    image_bytes = imagetools.convert_image_bytes(image, "JPEG", 90)
     base_name = (
         ".".join(image_name.split(".")[:-1]) if "." in image_name else image_name
     )
@@ -41,24 +40,6 @@ async def upload_image(
     )
 
 
-async def render_mwj(mwj: dict) -> Image.Image:
-    # logging.info(f"Rendering mwj: {mwj}")
-    with open("logs/mwj.json", "w") as f:
-        json.dump(mwj, f, indent=4, ensure_ascii=False)
-
-    async with httpx.AsyncClient() as client:
-        r = await client.post(
-            Settings.MWJ_RENDER_URL,
-            json=mwj,
-            headers={"x-api-key": Settings.RENDER_API_KEY},
-        )
-        r.raise_for_status()
-
-    base64_str = r.json().get("result")
-    logging.info(base64_str)
-    return imagetools.base64_to_image(base64_str)
-
-
 async def fill_render_template_data(template_data: str, data: dict) -> dict:
     jinja_template = jinja2.Template(template_data)
     text = jinja_template.render(**data)
@@ -66,7 +47,7 @@ async def fill_render_template_data(template_data: str, data: dict) -> dict:
     return result
 
 
-async def get_template_data(template_name: str) -> dict:
+async def get_template_data(template_name: str) -> str:
     template = await Template.get_by_name(template_name)
     async with httpx.AsyncClient() as client:
         r = await client.get(template.url)
@@ -79,18 +60,49 @@ async def rendering_template_data(
     template_name: str, render: Render | RenderGroup
 ) -> dict:
     template_data = await get_template_data(template_name)
-    # template_data =
+    template = await Template.get_by_name(template_name)
+
     data = render.texts.copy()
     tasks = []
     for value in render.images.values():
-        tasks.append(imagetools.get_image_base64(value))
+        tasks.append(imagetools.download_image_base64(value))
 
     images = await asyncio.gather(*tasks)
     for key, image in zip(render.images.keys(), images):
         data[key] = image
 
+    data["logo"] = (
+        await imagetools.download_image_base64(render.logo) if render.logo else None
+    )
+
+    template_font = template.fonts[0] if len(template.fonts) > 0 else "Vazirmatn"
+    font = render.fonts[0] if len(render.fonts) > 0 else template_font
+    data["font"] = font
+    for i, font in enumerate(template.fonts):
+        data[f"font{i+1}"] = render.fonts[i] if len(render.fonts) > i else font
+    for i, color in enumerate(template.colors):
+        data[f"color{i+1}"] = render.colors[i] if len(render.colors) > i else color
+
     mwj = await fill_render_template_data(template_data, data)
     return mwj
+
+
+async def render_mwj(mwj: dict) -> Image.Image:
+    # logging.info(f"Rendering mwj: {mwj}")
+    with open("logs/mwj.json", "w") as f:
+        json.dump(mwj, f, indent=4, ensure_ascii=False)
+
+    async with httpx.AsyncClient() as client:
+        r = await client.post(
+            Settings.MWJ_RENDER_URL,
+            json={"template": mwj},
+            headers={"x-api-key": Settings.RENDER_API_KEY},
+        )
+        r.raise_for_status()
+
+    base64_str = r.json().get("result")
+    # logging.info(base64_str)
+    return imagetools.load_from_base64(base64_str)
 
 
 async def process_render(render: Render) -> Render:
