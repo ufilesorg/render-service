@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Literal
 
 from fastapi_mongo_base.schemas import BaseEntitySchema
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 class FieldType(str, Enum):
@@ -26,9 +26,10 @@ class FieldType(str, Enum):
     hidden = "hidden"
 
 
-class FieldSchema(BaseEntitySchema):
+class FieldSchema(BaseModel):
     name: str
     label: str
+    label_fa: str | None = None
     placeholder: str | None = None
     type: FieldType = FieldType.text
     values: list[str] | None = None
@@ -36,9 +37,17 @@ class FieldSchema(BaseEntitySchema):
     page: Literal["content", "image", "brand"] = "content"
     default: str | None = None
 
+    @model_validator(mode="before")
+    def validate_label(cls, values: dict):
+        if not values.get("label"):
+            values["label"] = values.get("name")
+        return values
+
+    def __hash__(self):
+        return hash(self.name)
+
 
 class TemplateCreateSchema(BaseModel):
-    meta_data: dict | None = None
     model: Literal["mwj", "psd"] = "mwj"
 
     name: str
@@ -58,21 +67,33 @@ class TemplateCreateSchema(BaseModel):
     colors: list[str] = []
     fonts: list[str] = []
 
+    fields: list[FieldSchema] = []
+
+    meta_data: dict | None = None
+
 
 class TemplateSchema(TemplateCreateSchema, BaseEntitySchema):
     preview_template_name: str | None = None
     render_template_name: str | None = None
     render_template_name: str | None = None
-    form_fields: list[FieldSchema] = []
+    fields: list[FieldSchema] = []
     assist_data: dict | None = None
 
 
 class TemplateGroupCreateSchema(BaseModel):
     name: str
+    thumbnail: str
     template_names: list[str] = []
     description: str | None = None
     category: str = "general"
 
+    meta_data: dict | None = None
+
 
 class TemplateGroupSchema(TemplateGroupCreateSchema, BaseEntitySchema):
+    # fields: list[FieldSchema] = []
     pass
+
+
+class TemplateGroupDetailSchema(TemplateGroupSchema):
+    fields: list[FieldSchema] = []

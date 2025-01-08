@@ -6,7 +6,8 @@ import httpx
 import jinja2
 import ufiles
 from apps.template.models import Template, TemplateGroup
-from fastapi_mongo_base.utils import texttools
+from apps.template.schemas import FieldType
+from fastapi_mongo_base.utils import basic, texttools
 from PIL import Image
 from server.config import Settings
 from utils import imagetools
@@ -59,34 +60,72 @@ async def get_template_data(template_name: str) -> str:
 async def rendering_template_data(
     template_name: str, render: Render | RenderGroup
 ) -> dict:
+
+    def get_text_dict(texts: dict | list[str], template: Template) -> dict[str, str]:
+        if isinstance(texts, dict):
+            return texts.copy()
+
+        result = {}
+        for i, field in enumerate(template.fields):
+            if field.type != FieldType.text:
+                continue
+            result[field.name] = texts[i] if len(texts) > i else field.default
+        return result
+
+    async def get_image_dict(
+        images: dict | list[str], template: Template
+    ) -> dict[str, str]:
+        if isinstance(images, dict):
+            downloaded_images = await asyncio.gather(
+                *[imagetools.download_image_base64(value) for value in images.values()]
+            )
+            return dict(zip(images.keys(), downloaded_images))
+
+        result = {}
+        for i, field in enumerate(template.fields):
+            if field.type != FieldType.image:
+                continue
+            result[field.name] = images[i] if len(images) > i else field.default
+        return result
+
+    def get_font_dict(fonts: list[str] | str, template: Template) -> dict[str, str]:
+        if isinstance(fonts, str):
+            fonts = [fonts] * len(template.fonts)
+        template_font = template.fonts[0] if len(template.fonts) > 0 else "Vazirmatn"
+        data = {"font": fonts[0] if len(fonts) > 0 else template_font}
+        for i, font in enumerate(template.fonts):
+            data[f"font{i+1}"] = fonts[i] if len(fonts) > i else font
+        return data
+
+    def get_color_dict(colors: list[str], template: Template) -> dict[str, str]:
+        template_color = template.colors[0] if len(template.colors) > 0 else "#000000"
+        data = {"color": colors[0] if len(colors) > 0 else template_color}
+        for i, color in enumerate(template.colors):
+            data[f"color{i+1}"] = colors[i] if len(colors) > i else color
+        return data
+
     template_data = await get_template_data(template_name)
     template = await Template.get_by_name(template_name)
 
-    data = render.texts.copy()
-    tasks = []
-    for value in render.images.values():
-        tasks.append(imagetools.download_image_base64(value))
-
-    images = await asyncio.gather(*tasks)
-    for key, image in zip(render.images.keys(), images):
-        data[key] = image
-
-    data["logo"] = (
-        await imagetools.download_image_base64(render.logo) if render.logo else None
+    data = (
+        get_text_dict(render.texts, template)
+        | get_font_dict(render.fonts, template)
+        | get_color_dict(render.colors, template)
+        | await get_image_dict(render.images, template)
+        | {
+            "logo": (
+                await imagetools.download_image_base64(render.logo)
+                if render.logo
+                else None
+            )
+        }
     )
-
-    template_font = template.fonts[0] if len(template.fonts) > 0 else "Vazirmatn"
-    font = render.fonts[0] if len(render.fonts) > 0 else template_font
-    data["font"] = font
-    for i, font in enumerate(template.fonts):
-        data[f"font{i+1}"] = render.fonts[i] if len(render.fonts) > i else font
-    for i, color in enumerate(template.colors):
-        data[f"color{i+1}"] = render.colors[i] if len(render.colors) > i else color
 
     mwj = await fill_render_template_data(template_data, data)
     return mwj
 
 
+@basic.retry_execution(attempts=3, delay=1)
 async def render_mwj(mwj: dict) -> Image.Image:
     # logging.info(f"Rendering mwj: {mwj}")
     with open("logs/mwj.json", "w") as f:
@@ -130,14 +169,14 @@ async def render_bulk(data: list[dict]) -> list[Image.Image]:
     async with httpx.AsyncClient() as client:
         r = await client.post(
             f"{Settings.MWJ_RENDER_URL}/bulk",
-            json=json.loads({"templates": data}),
+            json={"templates": data, "data": {"name": "test"}},
             headers={"x-api-key": Settings.RENDER_API_KEY},
         )
         r.raise_for_status()
     renders = r.json().get("results")
     output = []
     for render in renders:
-        output.append(imagetools.base64_to_image(render))
+        output.append(imagetools.load_from_base64(render))
     return output
 
 
@@ -160,6 +199,24 @@ async def upload_image_result(
 
 async def process_render_bulk(render_group: RenderGroup) -> RenderGroup:
     template_group = await TemplateGroup.get_by_name(render_group.group_name)
+    render_requests = [
+        Render(**render_group.model_dump(), template_name=template_name)
+        for template_name in template_group.template_names
+    ]
+    # renders: list[Render] = []
+    for render_request in render_requests:
+        render = await process_render(render_request)
+        render_group.results.extend(render.results)
+        render_group.render_ids.append(render.uid)
+        # renders.append(render)
+        await asyncio.sleep(0.1)
+
+    await render_group.save()
+    return render_group
+
+
+async def _process_render_bulk(render_group: RenderGroup) -> RenderGroup:
+    template_group = await TemplateGroup.get_by_name(render_group.group_name)
 
     rendering_templates = await asyncio.gather(
         *[
@@ -170,7 +227,12 @@ async def process_render_bulk(render_group: RenderGroup) -> RenderGroup:
 
     result_images = await render_bulk(rendering_templates)
 
-    basename = texttools.sanitize_filename(list(render_group.texts.values()[0]))
+    texts = (
+        list(render_group.texts.values())
+        if isinstance(render_group.texts, dict)
+        else render_group.texts
+    )
+    basename = texttools.sanitize_filename(texts[0] if texts else "")
 
     render_group.results.append(
         await upload_image_result(result_images[0], basename, render_group.user_id)

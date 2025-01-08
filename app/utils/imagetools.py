@@ -195,7 +195,7 @@ def load_from_base64(encoded: str) -> Image.Image:
 async def load_from_url(url: str) -> Image.Image:
     """Load an image from a URL."""
     async with httpx.AsyncClient() as client:
-        r = await client.get(url)
+        r = await client.get(url, follow_redirects=True)
         r.raise_for_status()
     buffered = BytesIO(r.content)
     return Image.open(buffered)
