@@ -14,6 +14,7 @@ from .schemas import (
     TemplateGroupCreateSchema,
     TemplateGroupDetailSchema,
     TemplateSchema,
+    TemplateUpdateSchema,
 )
 
 
@@ -30,6 +31,9 @@ class TemplateRouter(AbstractBaseRouter[Template, TemplateSchema]):
         self, request: Request, data: TemplateCreateSchema
     ) -> Template:
         return await super().create_item(request, data.model_dump())
+    
+    async def update_item(self, request: Request, uid: UUID, data: TemplateUpdateSchema) -> Template:
+        return await super().update_item(request, uid, data.model_dump(exclude_none=True, exclude_unset=True))
 
 
 class TemplateGroupRouter(AbstractBaseRouter):

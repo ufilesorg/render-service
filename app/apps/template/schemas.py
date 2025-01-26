@@ -72,6 +72,24 @@ class TemplateCreateSchema(BaseModel):
     meta_data: dict | None = None
 
 
+class TemplateUpdateSchema(BaseModel):
+    model: Literal["mwj", "psd"] | None = None
+    name: str | None = None
+    description: str | None = None
+    # url: str | None = None
+    thumbnail: str | None = None
+    design: str | None = None
+    # width: int | None = None
+    # height: int | None = None
+    tags: list[str] | None = None
+    category: str | None = None
+    license: Literal["free", "paid"] | None = None
+    colors: list[str] | None = None
+    fonts: list[str] | None = None
+    fields: list[FieldSchema] | None = None
+    meta_data: dict | None = None
+
+
 class TemplateSchema(TemplateCreateSchema, BaseEntitySchema):
     preview_template_name: str | None = None
     render_template_name: str | None = None
