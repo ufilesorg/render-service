@@ -13,6 +13,7 @@ from .schemas import (
     TemplateCreateSchema,
     TemplateGroupCreateSchema,
     TemplateGroupDetailSchema,
+    TemplateGroupUpdateSchema,
     TemplateSchema,
     TemplateUpdateSchema,
 )
@@ -27,13 +28,35 @@ class TemplateRouter(AbstractBaseRouter[Template, TemplateSchema]):
             return None
         return jwt_access_security(request)
 
+    async def list_items(
+        self,
+        request: Request,
+        offset: int = Query(0, ge=0),
+        limit: int = Query(10, ge=1, le=Settings.page_max_limit),
+        created_at_from: datetime | None = None,
+        created_at_to: datetime | None = None,
+        name: str | None = None,
+    ):
+        return await self._list_items(
+            request=request,
+            offset=offset,
+            limit=limit,
+            created_at_from=created_at_from,
+            created_at_to=created_at_to,
+            name=name,
+        )
+
     async def create_item(
         self, request: Request, data: TemplateCreateSchema
     ) -> Template:
         return await super().create_item(request, data.model_dump())
-    
-    async def update_item(self, request: Request, uid: UUID, data: TemplateUpdateSchema) -> Template:
-        return await super().update_item(request, uid, data.model_dump(exclude_none=True, exclude_unset=True))
+
+    async def update_item(
+        self, request: Request, uid: UUID, data: TemplateUpdateSchema
+    ) -> Template:
+        return await super().update_item(
+            request, uid, data.model_dump(exclude_none=True, exclude_unset=True)
+        )
 
 
 class TemplateGroupRouter(AbstractBaseRouter):
@@ -58,6 +81,7 @@ class TemplateGroupRouter(AbstractBaseRouter):
         limit: int = Query(10, ge=1, le=Settings.page_max_limit),
         created_at_from: datetime | None = None,
         created_at_to: datetime | None = None,
+        name: str | None = None,
     ):
         user_id = await self.get_user_id(request)
         limit = max(1, min(limit, Settings.page_max_limit))
@@ -68,6 +92,7 @@ class TemplateGroupRouter(AbstractBaseRouter):
             limit=limit,
             created_at_from=created_at_from,
             created_at_to=created_at_to,
+            name=name,
         )
         items_in_schema = [
             self.list_item_schema(**item.model_dump(), fields=await item.get_fields())
@@ -95,6 +120,13 @@ class TemplateGroupRouter(AbstractBaseRouter):
         )
         return TemplateGroupDetailSchema(
             **template_group.model_dump(), fields=await template_group.get_fields()
+        )
+
+    async def update_item(
+        self, request: Request, uid: UUID, data: TemplateGroupUpdateSchema
+    ) -> TemplateGroupDetailSchema:
+        return await super().update_item(
+            request, uid, data.model_dump(exclude_none=True, exclude_unset=True)
         )
 
 

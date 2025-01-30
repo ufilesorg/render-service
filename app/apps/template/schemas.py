@@ -115,3 +115,12 @@ class TemplateGroupSchema(TemplateGroupCreateSchema, BaseEntitySchema):
 
 class TemplateGroupDetailSchema(TemplateGroupSchema):
     fields: list[FieldSchema] = []
+
+
+class TemplateGroupUpdateSchema(BaseModel):
+    name: str | None = None
+    thumbnail: str | None = None
+    template_names: list[str] | None = None
+    description: str | None = None
+    category: str | None = None
+    meta_data: dict | None = None
